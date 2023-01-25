@@ -1,0 +1,86 @@
+{
+  "Comment": "A description of my state machine",
+  "StartAt": "Iterate Images in S3",
+  "States": {
+    "Iterate Images in S3": {
+      "Type": "Map",
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "DISTRIBUTED",
+          "ExecutionType": "EXPRESS"
+        },
+        "StartAt": "Moderate Image",
+        "States": {
+          "Moderate Image": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+              "Payload.$": "$",
+              "FunctionName": "##LAMBDA_MODERATE_IMAGE##"
+            },
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException",
+                  "Lambda.SdkClientException",
+                  "Lambda.TooManyRequestsException"
+                ],
+                "IntervalSeconds": 2,
+                "MaxAttempts": 6,
+                "BackoffRate": 2
+              }
+            ],
+            "End": true,
+            "ResultSelector": {}
+          }
+        }
+      },
+      "Label": "IterateImagesinS3",
+      "MaxConcurrency": 5,
+      "ItemReader": {
+        "Resource": "arn:aws:states:::s3:listObjectsV2",
+        "Parameters": {
+          "Bucket.$": "$.S3Bucket",
+          "Prefix.$": "$.S3Prefix"
+        },
+        "ReaderConfig": {}
+      },
+      "ItemSelector": {
+        "TaskId.$": "$.TaskId",
+        "S3Bucket.$": "$.S3Bucket",
+        "S3Key.$": "$$.Map.Item.Value.Key",
+        "DynamoDBTable.$": "$.DynamoDBTable",
+        "A2IWorkFlowArn.$": "$.A2IWorkFlowArn"
+      },
+      "Next": "Update moderation task status",
+      "ResultPath": null
+    },
+    "Update moderation task status": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "OutputPath": "$.Payload",
+      "Parameters": {
+        "FunctionName": "##LAMBDA_UPDATE_STATUS##",
+        "Payload": {
+          "id.$": "$.TaskId",
+          "status": "MODERATION_COMPLETED"
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 6,
+          "BackoffRate": 2
+        }
+      ],
+      "End": true
+    }
+  }
+}
