@@ -41,6 +41,8 @@ S3_PRE_SIGNED_URL_EXPIRATION_IN_S = "300"
 
 API_NAME_PREFIX = "cm-accuracy-eval-srv"
 STEP_FUNCTION_STATE_MACHINE_NAME_PREFIX = "cm-accuracy-eval-image-sm"
+A2I_WORKFLOW_NAME_PREFIX = "cm-accuracy-"
+A2I_UI_TEMPLATE_NAME = "HUMAN_TASK_UI_NAME"
 
 
 REGION = os.getenv('CDK_DEFAULT_REGION')
@@ -145,13 +147,14 @@ class AccuracyEval(Stack):
             sm_json = str(f.read())
 
         if sm_json is not None:
-            sm_json.replace("##LAMBDA_MODERATE_IMAGE##", lambda_moderate_image.function_arn)
-            sm_json.replace("##LAMBDA_UPDATE_STATUS##", lambda_update_status.function_arn)
+            sm_json = sm_json.replace("##LAMBDA_MODERATE_IMAGE##", f"arn:aws:lambda:{REGION}:{ACCOUNT_ID}:function:cm-accuracy-eval-task-moderate-image-{instance_hash}")
+            sm_json = sm_json.replace("##LAMBDA_UPDATE_STATUS##", f"arn:aws:lambda:{REGION}:{ACCOUNT_ID}:function:cm-accuracy-eval-task-update-status-{instance_hash}")
             
         cfn_state_machine = _aws_stepfunctions.CfnStateMachine(self, f'{STEP_FUNCTION_STATE_MACHINE_NAME_PREFIX}-{instance_hash}',
             state_machine_name=f'{STEP_FUNCTION_STATE_MACHINE_NAME_PREFIX}-{instance_hash}', 
             role_arn=step_function_role.role_arn,
             definition_string=sm_json)
+        
         # Step Function - end
         
         
@@ -172,12 +175,21 @@ class AccuracyEval(Stack):
         # POST /v1/report/images
         # Lambda: cm-accuracy-eval-report-get-images 
         get_images_role = create_lambda_get_images_role(self,bucket_name, REGION, ACCOUNT_ID)
-        self.create_api_endpoint('get-images', report, "report", "images", "POST", auth, get_images_role, "cm-accuracy-eval-report-get-images", instance_hash, 512, 30, 
+        self.create_api_endpoint('get-images', report, "report", "images", "POST", auth, get_images_role, "cm-accuracy-eval-report-get-images", instance_hash, 10240, 30, 
             evns={
              'DYNAMO_INDEX_NAME': DYNAMOBD_DETAIL_TABLE_LABELED_INDEX_NAME,
              'DYNAMO_TASK_TABLE': DYNAMOBD_TASK_TABLE_PREFIX,
              'EXPIRATION_IN_S': S3_PRE_SIGNED_URL_EXPIRATION_IN_S,
             })
+ 
+        # POST /v1/report/images-unflag
+        # Lambda: cm-accuracy-eval-task-get-images-unflaged 
+        self.create_api_endpoint('get-images-unflag', report, "report", "images-unflag", "POST", auth, get_images_role, "cm-accuracy-eval-task-get-images-unflaged", instance_hash, 10240, 30, 
+            evns={
+             'DYNAMO_INDEX_NAME': DYNAMOBD_DETAIL_TABLE_LABELED_INDEX_NAME,
+             'DYNAMO_TASK_TABLE': DYNAMOBD_TASK_TABLE_PREFIX,
+             'EXPIRATION_IN_S': S3_PRE_SIGNED_URL_EXPIRATION_IN_S,
+            })        
  
         # POST /v1/report/report
         # Lambda: cm-accuracy-eval-report-get-report 
@@ -229,7 +241,13 @@ class AccuracyEval(Stack):
         # Lambda: cm-accuracy-eval-task-start-moderation   
         start_moderation_role = lambda_start_moderation_role(self,bucket_name, REGION, ACCOUNT_ID)
         self.create_api_endpoint('start-moderation', task, "task", "start-moderation", "POST", auth, start_moderation_role, "cm-accuracy-eval-task-start-moderation", instance_hash, 128, 30, 
-            evns={})
+            evns={
+                "DYNAMODB_TASK_TABLE":DYNAMOBD_TASK_TABLE_PREFIX,
+                "DYNAMODB_RESULT_TABLE_PREFIX": DYNAMOBD_DETAIL_TABLE_PREFIX,
+                "WORK_FLOW_NAME_PREFIX": A2I_WORKFLOW_NAME_PREFIX,
+                "HUMAN_TASK_UI_NAME": A2I_UI_TEMPLATE_NAME,
+                "STEP_FUNCTION_STATE_MACHINE_ARN": f"arn:aws:states:{REGION}:{ACCOUNT_ID}:stateMachine:{STEP_FUNCTION_STATE_MACHINE_NAME_PREFIX}-{instance_hash}"
+            })
             
             
     def create_api_endpoint(self, id, root, path1, path2, method, auth, role, lambda_file_name, instance_hash, memory_m, timeout_s, evns, layer=None):

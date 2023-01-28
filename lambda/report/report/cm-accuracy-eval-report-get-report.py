@@ -264,7 +264,7 @@ def flatten_labels(db_item, flat_items, top_category=None, sub_category=None, ty
                     "top_category": db_top_category,
                     "sub_category": db_sub_category,
                     "confidence": db_confidence,
-                    "type": i["M"]["review_result"]["S"]
+                    "type": i["M"]["review_result"].get("S")
                 })
 
     return flat_items
