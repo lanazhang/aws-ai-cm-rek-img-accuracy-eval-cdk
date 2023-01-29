@@ -147,6 +147,7 @@ def on_create(event):
     ui_template_arn = hui["HumanTaskUiArn"]
     print("5. Human UI template created:", ui_template_arn)
     
+    '''
     return {
       "WorkForceArn": work_force_arn,
       "WorkTeamArn": work_team_arn,
@@ -155,7 +156,8 @@ def on_create(event):
       "CognitoUserPoolId": cognito_user_pool_id,
       "CognitoClientId": cognito_client_id,
       "UserErrors": user_errors
-    }
+    }'''
+    return f'{cognito_user_pool_id},{cognito_client_id}'
 
 def on_update(event):
   return

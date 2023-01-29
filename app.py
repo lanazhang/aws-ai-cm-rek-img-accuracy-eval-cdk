@@ -1,28 +1,33 @@
 #!/usr/bin/env python3
 import os
-
+import uuid
+import json
 import aws_cdk as cdk
 
-from accuracy_eval.accuracy_eval import AccuracyEval
+from accuracy_eval.backend_provision import BackendProvision
+from accuracy_eval.a2i_provision import A2iProvision
+from accuracy_eval.frontend_provision import FrontendProvision
 
+instance_hash = str(uuid.uuid4())[0:5]
 
 app = cdk.App()
-AccuracyEval(app, "AwsAiContentModerationAccuracyEvaluationInABoxStack",
-    # If you don't specify 'env', this stack will be environment-agnostic.
-    # Account/Region-dependent features and context lookups will not work,
-    # but a single synthesized template can be deployed anywhere.
 
-    # Uncomment the next line to specialize this stack for the AWS Account
-    # and Region that are implied by the current CLI configuration.
+a2i_stack = A2iProvision(app, "A2iProvisionStack",
+    env=cdk.Environment(account=os.getenv('CDK_DEFAULT_ACCOUNT'), region=os.getenv('CDK_DEFAULT_REGION')),
+    instance_hash_code=instance_hash
+)
 
-    #env=cdk.Environment(account=os.getenv('CDK_DEFAULT_ACCOUNT'), region=os.getenv('CDK_DEFAULT_REGION')),
+backend_stack = BackendProvision(app, "BackendProvisionStack",
+    env=cdk.Environment(account=os.getenv('CDK_DEFAULT_ACCOUNT'), region=os.getenv('CDK_DEFAULT_REGION')),
+    instance_hash_code=instance_hash,
+    cognito_user_pool_id = a2i_stack.ouput_cognito_user_pool_id
+)
 
-    # Uncomment the next line if you know exactly what Account and Region you
-    # want to deploy the stack to. */
-
-    #env=cdk.Environment(account='123456789012', region='us-east-1'),
-
-    # For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html
-    )
+frontend_stack = FrontendProvision(app, "FrontProvisionStack",
+    env=cdk.Environment(account=os.getenv('CDK_DEFAULT_ACCOUNT'), region=os.getenv('CDK_DEFAULT_REGION')),
+    instance_hash_code=instance_hash,
+    api_gw_base_url = backend_stack.api_gw_base_url,
+    cognito_user_pool_id = a2i_stack.ouput_cognito_user_pool_id
+)
 
 app.synth()

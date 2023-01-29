@@ -6,7 +6,7 @@ from constructs import Construct
 
 def create_policy_s3(self, bucket_name, region, account_id):
     return  _iam.PolicyStatement(
-            actions=["s3:GetObject","s3:ListObjects", "s3:DeleteObject", "s3:DeleteObjectVersion"],
+            actions=["s3:GetObject*","s3:ListObjects", "s3:DeleteObject", "s3:DeleteObjectVersion", "s3:*File"],
             resources=[f"arn:aws:s3:::{bucket_name}"]
         )
 
