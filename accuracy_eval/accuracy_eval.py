@@ -12,10 +12,16 @@ from aws_cdk import (
     aws_s3_notifications,
     aws_stepfunctions as _aws_stepfunctions,
     RemovalPolicy,
+    custom_resources as cr,
+    CfnOutput,
+    CustomResource
 )
+from aws_cdk.aws_logs import RetentionDays
 from constructs import Construct
 import os
 import uuid
+import json
+
 from iam_role.lambda_s3_trigger_role import create_role as create_lambda_s3_trigger_role
 from iam_role.lambda_moderate_image_role import create_role as create_lambda_moderate_image_role
 from iam_role.lambda_update_status_role import create_role as create_lambda_update_status_role
@@ -27,6 +33,7 @@ from iam_role.lambda_create_task_role import create_role as create_lambda_create
 from iam_role.lambda_delete_task_role import create_role as create_lambda_delete_task_role
 from iam_role.lambda_start_moderation_role import create_role as lambda_start_moderation_role
 from iam_role.lambda_get_task_with_count_role import create_role as lambda_get_task_with_count_role
+from iam_role.lambda_provision_role import create_role as lambda_provision_role
 
 COGNITO_NAME_PREFIX = 'cm-accuracy-eval-user-pool'
 
@@ -42,39 +49,28 @@ S3_PRE_SIGNED_URL_EXPIRATION_IN_S = "300"
 API_NAME_PREFIX = "cm-accuracy-eval-srv"
 STEP_FUNCTION_STATE_MACHINE_NAME_PREFIX = "cm-accuracy-eval-image-sm"
 A2I_WORKFLOW_NAME_PREFIX = "cm-accuracy-"
-A2I_UI_TEMPLATE_NAME = "HUMAN_TASK_UI_NAME"
+A2I_UI_TEMPLATE_NAME = "cm-accuracy-eval-image-review-ui-template"
+A2I_WORK_FORCE_NAME = 'cm-accuracy-eval-workforce'
+A2I_WORK_TEAM_NAME = 'cm-accuracy-eval-workteam'
 
-
-REGION = os.getenv('CDK_DEFAULT_REGION')
-ACCOUNT_ID = os.getenv('CDK_DEFAULT_ACCOUNT')
+COGNITO_USER_POOL_NAME = 'cm-accuracy-eval-user-pool'
+COGNITO_CLIENT_NAME = 'web-client'
+COGNITO_GROUP_NAME = 'admin'
+COGNITO_USER_POOL_DOMAIN = 'accuracy-eval'
 
 class AccuracyEval(Stack):
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
+        
+        REGION = Stack.of(self).region
+        ACCOUNT_ID = Stack.of(self).account
 
-        #bucket_name = _cfnParameter(self, "uploadBucketName", type="String",
-        #                            description="The name of the Amazon S3 bucket where uploaded images will be stored.")
+        user_emails = _cfnParameter(self, "userEmails", type="String", default="lanaz@amazon.com",
+                                    description="The emails for users to log in to the tool and A2I. Split by a comma if multiple. You can always add new users after the system is deployed.")
         
         instance_hash = str(uuid.uuid4())[0:5]
-        
-        # Create Cognitio User pool and authorizer
-        user_pool = _cognito.UserPool(self, f"{COGNITO_NAME_PREFIX}-{instance_hash}")
-        user_pool.add_client("app-client", 
-            auth_flows=_cognito.AuthFlow(
-                user_password=True
-            ),
-            supported_identity_providers=[_cognito.UserPoolClientIdentityProvider.COGNITO],
-        )
-        auth = _apigw.CognitoUserPoolsAuthorizer(self, f"WebAuthorizer", cognito_user_pools=[user_pool])
-                                                      
-        # Create DynamoDB                                 
-        task_table = _dynamodb.Table(self, 
-            id='task-table', 
-            table_name=f'{DYNAMOBD_TASK_TABLE_PREFIX}-{instance_hash}', 
-            partition_key=_dynamodb.Attribute(name='id', type=_dynamodb.AttributeType.STRING),
-            removal_policy=RemovalPolicy.DESTROY
-        ) 
+        work_team_arn, a2i_ui_template_arn, cognito_user_pool_arn = None, None, None
         
         # Create S3 bucket
         bucket_name = f'{S3_BUCKET_NAME_PREFIX}-{ACCOUNT_ID}-{REGION}-{instance_hash}'
@@ -87,6 +83,74 @@ class AccuracyEval(Stack):
                 allowed_methods=[_s3.HttpMethods.GET],
                 allowed_origins=["*"])
             ])
+       
+        # Custom Resource Lambda: cm-accuracy-eval-provision-custom-resource
+        provision_role = lambda_provision_role(self,bucket_name, REGION, ACCOUNT_ID)
+        lambda_provision = _lambda.Function(self, 
+            id='provision-custom-resource', 
+            function_name=f"cm-accuracy-eval-provision-custom-resource-{instance_hash}", 
+            runtime=_lambda.Runtime.PYTHON_3_9,
+            handler='cm-accuracy-eval-provision-custom-resource.on_event',
+            code=_lambda.Code.from_asset(os.path.join("./", "lambda/provision")),
+            timeout=Duration.seconds(60),
+            role=provision_role,
+            memory_size=512,
+            environment={
+             'HUMAN_TASK_UI_NAME': f"{A2I_UI_TEMPLATE_NAME}-{instance_hash}",
+             'COGNITO_USER_EMAILS':user_emails.value_as_string,
+             'WORKFORCE_NAME': f'{A2I_WORK_FORCE_NAME}-{instance_hash}',
+             'WORKTEAM_NAME': f'{A2I_WORK_TEAM_NAME}-{instance_hash}',
+             'COGNITO_USER_POOL_NAME':f'{COGNITO_USER_POOL_NAME}-{instance_hash}',
+             'COGNITO_CLIENT_NAME': f'{COGNITO_CLIENT_NAME}-{instance_hash}',
+             'COGNITO_GROUP_NAME': f'{COGNITO_GROUP_NAME}-{instance_hash}',
+             'COGNITO_USER_POOL_DOMAIN': f'{COGNITO_USER_POOL_DOMAIN}-{instance_hash}'
+            }
+        ) 
+        c_resource = cr.AwsCustomResource(
+            self,
+            f"provision-provider-{instance_hash}",
+            log_retention=RetentionDays.ONE_WEEK,
+            on_create=cr.AwsSdkCall(
+                service="Lambda",
+                action="invoke",
+                physical_resource_id=cr.PhysicalResourceId.of("Trigger"),
+                parameters={
+                    "FunctionName": lambda_provision.function_name,
+                    "InvocationType": "RequestResponse",
+                    "Payload": "{\"RequestType\": \"Create\"}"
+                },
+                # output_paths=["info.current"]
+            ),
+            role=provision_role
+        )       
+        
+        CfnOutput(self, id="InfoCurrent", value=c_resource.get_response_field("Payload"), export_name="CustomResourceOutput")
+
+        cognito_user_pool_arn = c_resource.get_response_field("Payload.CognitoUserPoolArn")
+        if cognito_user_pool_arn is None or not cognito_user_pool_arn.startswith('arn:'):
+            cognito_user_pool_arn = 'arn:aws:cognito-idp:us-east-1:122702569249:userpool/us-east-1_8fo02lIv0'
+
+        
+        # Create Cognitio User pool and authorizer
+        user_pool = _cognito.UserPool.from_user_pool_arn(self, f"{COGNITO_NAME_PREFIX}-{instance_hash}", cognito_user_pool_arn)
+        '''
+        user_pool = _cognito.UserPool(self, f"{COGNITO_NAME_PREFIX}-{instance_hash}")
+        user_pool.add_client("app-client", 
+            auth_flows=_cognito.AuthFlow(
+                user_password=True
+            ),
+            supported_identity_providers=[_cognito.UserPoolClientIdentityProvider.COGNITO],
+        )
+        '''
+        auth = _apigw.CognitoUserPoolsAuthorizer(self, f"WebAuthorizer-{instance_hash}", cognito_user_pools=[user_pool])
+                                                      
+        # Create DynamoDB                                 
+        task_table = _dynamodb.Table(self, 
+            id='task-table', 
+            table_name=f'{DYNAMOBD_TASK_TABLE_PREFIX}-{instance_hash}', 
+            partition_key=_dynamodb.Attribute(name='id', type=_dynamodb.AttributeType.STRING),
+            removal_policy=RemovalPolicy.DESTROY
+        ) 
         
         # Create Lambdas
 
@@ -245,7 +309,7 @@ class AccuracyEval(Stack):
                 "DYNAMODB_TASK_TABLE":DYNAMOBD_TASK_TABLE_PREFIX,
                 "DYNAMODB_RESULT_TABLE_PREFIX": DYNAMOBD_DETAIL_TABLE_PREFIX,
                 "WORK_FLOW_NAME_PREFIX": A2I_WORKFLOW_NAME_PREFIX,
-                "HUMAN_TASK_UI_NAME": A2I_UI_TEMPLATE_NAME,
+                "HUMAN_TASK_UI_NAME": f'arn:aws:sagemaker:{REGION}:{ACCOUNT_ID}:human-task-ui/{A2I_UI_TEMPLATE_NAME}-{instance_hash}',
                 "STEP_FUNCTION_STATE_MACHINE_ARN": f"arn:aws:states:{REGION}:{ACCOUNT_ID}:stateMachine:{STEP_FUNCTION_STATE_MACHINE_NAME_PREFIX}-{instance_hash}"
             })
             

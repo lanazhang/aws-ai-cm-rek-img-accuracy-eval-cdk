@@ -40,12 +40,13 @@ def create_policy_rekognition(self, bucket_name, region, account_id):
 
 def create_policy_a2i(self, bucket_name, region, account_id):
     return  _iam.PolicyStatement(
-            actions=["sagemaker:StartHumanLoop",
-                "sagemaker:DescribeHumanLoop",
-                "sagemaker:ListHumanLoops",
-                "sagemaker:DeleteFlowDefinition",
-                "sagemaker:DescribeWorkteam",
-                "sagemaker:ListWorkteams"],
+            actions=[
+                "sagemaker:*HumanLoop*",
+                "sagemaker:*FlowDefinition",
+                "sagemaker:*Workteam*",
+                "sagemaker:*Workforce*",
+                "sagemaker:*HumanTaskUi*"
+            ],
             resources=["*"]
         )
 
