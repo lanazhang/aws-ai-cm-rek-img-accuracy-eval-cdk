@@ -1,33 +1,40 @@
-# Welcome to aws-ai-cm-rek-img-accuracy-eval-cdk CDK Python project!
+# AWS AI Content Moderation Accuracy Evaluation CDK Python package
+
+![workflow digram](static/flow_diagram.png)
+
+The AWS Content Moderation Accuracy Evaluation tool helps you evaluate Amazon Rekognition image moderation's false-positive rate based on your own dataset. For best results, we recommend you use a dataset with 5,000+ images, as fewer images may lead to a skewed result and a biased conclusion.
+
+To evaluate Content Moderation accuracy:
+
+* Initiate a new task and upload your dataset to the Amazon provided S3 bucket folder.
+* Start the moderation task once all the images are in place. Rekognition will then start to moderate images one by one.
+* Rekognition will label some of your images as inappropriate. You then can review these images using A2I to provide human input: if the image truly has inappropriate information (true-positive) or not (false-positive).
+* The tool will combine Rekognition moderation results and human inputs to produce an accuracy report.
 
 This CDK package will help you deploy the AWS Content Moderation accuracy evaluation PoC-in-a-box with Python.
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+## Prerequisites
 
-This project is set up like a standard Python project.  The initialization
-process also creates a virtualenv within this project, stored under the `.venv`
-directory.  To create the virtualenv it assumes that there is a `python3`
-(or `python` for Windows) executable in your path with access to the `venv`
-package. If for any reason the automatic creation of the virtualenv fails,
-you can create the virtualenv manually.
+```sh
+# Setup the AWS CLI
+aws configure                                                                     
+ ```                                                                                  
 
-To manually create a virtualenv on MacOS and Linux:
+1. Locally install AWS CDK as the [official documentation](https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html) describes.
+2. [Bootstrap CDK for AWS Account](https://github.com/aws/aws-cdk/blob/master/design/cdk-bootstrap.md) 
+3. Create a Python virtual environment
+  ```sh
+  python3 -m venv .venv                                      
+  ```
 
-```
-$ python3 -m venv .venv
-```
-
-After the init process completes and the virtualenv is created, you can use the following
-step to activate your virtualenv.
-
-```
-$ source .venv/bin/activate
-```
-
-If you are a Windows platform, you would activate the virtualenv like this:
-
-```
-% .venv\Scripts\activate.bat
+4. Activate virtual environment
+  On MacOS or Linux
+  ```sh
+  source .venv/bin/activate                                       
+  ```
+  On Windows
+  ```sh
+    .venv\Scripts\activate.bat                                        
 ```
 
 Once the virtualenv is activated, you can install the required dependencies.
@@ -54,3 +61,6 @@ command.
  * `cdk docs`        open CDK documentation
 
 Enjoy!
+
+System architecture:
+![workflow digram](static/cm-accuray-eval-architecture.png)
