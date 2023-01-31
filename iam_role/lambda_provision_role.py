@@ -10,6 +10,10 @@ def create_role(self, bucket_name, region, account_id):
     new_role = _iam.Role(self, "lambda-provision-role",
         assumed_by=_iam.ServicePrincipal("lambda.amazonaws.com"),
     )
+    # S3
+    new_role.add_to_policy(
+        policy.create_policy_s3(self, bucket_name, region, account_id)
+    )
     # Pass role: sagemaker
     new_role.add_to_policy(
         policy.create_policy_passrole_sagemaker(self, bucket_name, region, account_id)

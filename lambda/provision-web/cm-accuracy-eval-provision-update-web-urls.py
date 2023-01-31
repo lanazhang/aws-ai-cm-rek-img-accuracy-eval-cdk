@@ -25,12 +25,13 @@ COGNITO_REGION_PLACE_HOLDER = os.environ.get("COGNITO_REGION_PLACE_HOLDER")
 COGNITO_USER_POOL_CLIENT_ID_PLACE_HOLDER = os.environ.get("COGNITO_USER_POOL_CLIENT_ID_PLACE_HOLDER")
 
 APIGW_URL = os.environ.get("APIGW_URL")
-COGNITO_USER_POOL_ID = os.environ.get("COGNITO_USER_POOL_ID")
-COGNITO_USER_POOL_CLIENT_ID = os.environ.get("COGNITO_USER_POOL_CLIENT_ID")
 COGNITO_REGION = os.environ.get("COGNITO_REGION")
 COGNITO_USER_IDENTITY_POOL_ID = os.environ.get("COGNITO_USER_IDENTITY_POOL_ID")
 
 CLOUD_FRONT_DISTRIBUTION_ID = os.environ.get("CLOUD_FRONT_DISTRIBUTION_ID")
+
+S3_BUCKET_NAME = os.environ["S3_BUCKET_NAME"]
+S3_BUCKET_TEMP_FILE_KEY = os.environ["S3_BUCKET_TEMP_FILE_KEY"]
 
 s3 = boto3.client('s3')
 cloudfront = boto3.client('cloudfront')
@@ -44,6 +45,14 @@ def on_event(event, context):
   raise Exception("Invalid request type: %s" % request_type)
 
 def on_create(event):
+  cognito_user_pool_id, cognito_user_client_id = None, None
+  # Get temp file from data bucket
+  s3_data = s3.get_object(Bucket=S3_BUCKET_NAME, Key=S3_BUCKET_TEMP_FILE_KEY)
+  a2i_data = json.loads(s3_data['Body'].read())
+  if a2i_data is not None:
+    cognito_user_pool_id = a2i_data["CognitoUserPoolId"]
+    cognito_user_client_id = a2i_data["CognitoClientId"]
+
   # Get files from s3 buckets
   s3_response = s3.list_objects(Bucket=S3_WEB_BUCKET_NAME, Prefix=S3_JS_PREFIX)
   if s3_response is not None and "Contents" in s3_response and len(s3_response["Contents"]) > 0:
@@ -60,10 +69,10 @@ def on_create(event):
       if txt is not None and len(txt) > 0:
         # Replace keywords
         txt = txt.replace(APIGW_URL_PLACE_HOLDER, APIGW_URL)
-        txt = txt.replace(COGNITO_USER_POOL_ID_PLACE_HOLDER, COGNITO_USER_POOL_ID)
+        txt = txt.replace(COGNITO_USER_POOL_ID_PLACE_HOLDER, cognito_user_pool_id)
         txt = txt.replace(COGNITO_USER_IDENTITY_POOL_ID_PLACE_HOLDER, COGNITO_USER_IDENTITY_POOL_ID)
         txt = txt.replace(COGNITO_REGION_PLACE_HOLDER, COGNITO_REGION)
-        txt = txt.replace(COGNITO_USER_POOL_CLIENT_ID_PLACE_HOLDER, COGNITO_USER_POOL_CLIENT_ID)
+        txt = txt.replace(COGNITO_USER_POOL_CLIENT_ID_PLACE_HOLDER, cognito_user_client_id)
         #print(txt)
           
         # Save the file to local disk
@@ -95,8 +104,12 @@ def on_update(event):
   return
 
 def on_delete(event):
+  # Cleanup the S3 bucket: web
+  s3_res = boto3.resource('s3')
+  web_bucket = s3_res.Bucket(S3_WEB_BUCKET_NAME)
+  web_bucket.objects.all().delete()
 
-  return {}
+  return True
 
 def on_complete(event):
   return

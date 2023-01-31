@@ -15,10 +15,11 @@ def create_role(self, bucket_name, region, account_id):
         policy.create_policy_lambda_log(self, bucket_name, region, account_id)
     )
     
-    # Log groups
-    new_role.add_to_policy(
-        policy.create_policy_s3(self, bucket_name, region, account_id)
-    )
+    # S3
+    for bucket in bucket_name.split(','):
+        new_role.add_to_policy(
+            policy.create_policy_s3(self, bucket, region, account_id)
+        )
     # Cognito
     new_role.add_to_policy(
         _iam.PolicyStatement(

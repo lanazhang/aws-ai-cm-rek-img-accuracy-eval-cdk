@@ -8,7 +8,10 @@ from iam_role import policy
 def create_role(self, bucket_name, region, account_id):
     # Trust
     new_role = _iam.Role(self, "lambda-start-moderation-role",
-        assumed_by=_iam.ServicePrincipal("lambda.amazonaws.com"),
+        assumed_by=_iam.CompositePrincipal(
+            _iam.ServicePrincipal("sagemaker.amazonaws.com"),
+            _iam.ServicePrincipal("lambda.amazonaws.com"),
+        )
     )
     # S3
     new_role.add_to_policy(
@@ -42,7 +45,7 @@ def create_role(self, bucket_name, region, account_id):
     # Invoke step function, lambda
     new_role.add_to_policy(
         _iam.PolicyStatement(
-            actions=["stepfunctions:StartExecution", "lambda:GetFunctionConfiguration"],
+            actions=["states:*", "lambda:GetFunctionConfiguration"],
             resources=["*"]
         )
     )

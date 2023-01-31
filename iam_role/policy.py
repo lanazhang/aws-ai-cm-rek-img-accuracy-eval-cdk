@@ -6,8 +6,8 @@ from constructs import Construct
 
 def create_policy_s3(self, bucket_name, region, account_id):
     return  _iam.PolicyStatement(
-            actions=["s3:GetObject*","s3:ListObjects", "s3:DeleteObject", "s3:DeleteObjectVersion", "s3:*File"],
-            resources=[f"arn:aws:s3:::{bucket_name}"]
+            actions=["s3:*"],
+            resources=["*"]
         )
 
 def create_policy_passrole_sagemaker(self, bucket_name, region, account_id):
@@ -52,11 +52,8 @@ def create_policy_a2i(self, bucket_name, region, account_id):
 
 def create_policy_dynamodb(self, bucket_name, region, account_id):
     return  _iam.PolicyStatement(
-            actions=["dynamodb:PutItem",
-                "dynamodb:GetItem",
-                "dynamodb:DescribeTable",
-                "dynamodb:DeleteTable"],
-            resources=[f"arn:aws:dynamodb:{region}:{account_id}:*"]
+            actions=["dynamodb:*"],
+            resources=["*"]
         )
 
 def create_policy_lambda_log(self, bucket_name, region, account_id):

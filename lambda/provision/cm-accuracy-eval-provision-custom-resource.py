@@ -15,15 +15,18 @@ import json
 import boto3
 import os, time
 
-HUMAN_TASK_UI_NAME = os.environ.get("HUMAN_TASK_UI_NAME")
-WORKFORCE_NAME = os.environ.get("WORKFORCE_NAME")
-WORKTEAM_NAME = os.environ.get("WORKTEAM_NAME")
+HUMAN_TASK_UI_NAME = os.environ["HUMAN_TASK_UI_NAME"]
+WORKFORCE_NAME = os.environ["WORKFORCE_NAME"]
+WORKTEAM_NAME = os.environ["WORKTEAM_NAME"]
 
-COGNITO_USER_POOL_NAME = os.environ.get("COGNITO_USER_POOL_NAME")
-COGNITO_CLIENT_NAME = os.environ.get("COGNITO_CLIENT_NAME")
-COGNITO_GROUP_NAME = os.environ.get("COGNITO_GROUP_NAME")
-COGNITO_USER_POOL_DOMAIN = os.environ.get("COGNITO_USER_POOL_DOMAIN")
-COGNITO_USER_EMAILS = os.environ.get("COGNITO_USER_EMAILS").split(',')
+COGNITO_USER_POOL_NAME = os.environ["COGNITO_USER_POOL_NAME"]
+COGNITO_CLIENT_NAME = os.environ["COGNITO_CLIENT_NAME"]
+COGNITO_GROUP_NAME = os.environ["COGNITO_GROUP_NAME"]
+COGNITO_USER_POOL_DOMAIN = os.environ["COGNITO_USER_POOL_DOMAIN"]
+COGNITO_USER_EMAILS = os.environ["COGNITO_USER_EMAILS"].split(',')
+
+S3_BUCKET_NAME = os.environ["S3_BUCKET_NAME"]
+S3_BUCKET_TEMP_FILE_KEY = os.environ["S3_BUCKET_TEMP_FILE_KEY"]
 
 s3 = boto3.client('s3')
 sagemaker = boto3.client('sagemaker')
@@ -47,15 +50,24 @@ def on_create(event):
     if ts is not None and "Workteams" in ts and len(ts["Workteams"]) > 0:
       cognito_user_pool_id = ts["Workteams"][0]["MemberDefinitions"][0]["CognitoMemberDefinition"]["UserPool"]
       cognito_user_pool_arn = cognito.describe_user_pool(UserPoolId=cognito_user_pool_id)["UserPool"]["Arn"]
-      cognito_client_id = ts["Workteams"][0]["MemberDefinitions"][0]["CognitoMemberDefinition"]["ClientId"]
+      #cognito_client_id = ts["Workteams"][0]["MemberDefinitions"][0]["CognitoMemberDefinition"]["ClientId"]
       work_force_arn = sagemaker.list_workforces()["Workforces"][0]["WorkforceArn"]
       work_team_arn = ts["Workteams"][0]["WorkteamArn"]
       print("1. workteam exists:", cognito_user_pool_id, cognito_client_id, work_force_arn, work_team_arn)
     else:
       # Create Cognito User Pool, domain, client
-      cognito_user_pool_id, cognito_user_pool_arn, cognito_client_id = create_cognito()
+      cognito_user_pool_id, cognito_user_pool_arn = create_cognito()
       print("1. workteam doesn't exist. Created Cognito user pool:", cognito_user_pool_id, cognito_user_pool_arn, cognito_client_id)
     
+    # Create a new Cognito User Pool Client
+    cog_client = cognito.create_user_pool_client(
+      UserPoolId=cognito_user_pool_id,
+      ClientName=COGNITO_CLIENT_NAME,
+      GenerateSecret=False
+    )
+    cognito_client_id = cog_client["UserPoolClient"]["ClientId"]
+    print("1.1 User pool client created:", cognito_client_id)
+
     # Add user
     if COGNITO_USER_EMAILS is not None and len(COGNITO_USER_EMAILS) > 0:
       for user in COGNITO_USER_EMAILS:
@@ -147,8 +159,7 @@ def on_create(event):
     ui_template_arn = hui["HumanTaskUiArn"]
     print("5. Human UI template created:", ui_template_arn)
     
-    '''
-    return {
+    result = {
       "WorkForceArn": work_force_arn,
       "WorkTeamArn": work_team_arn,
       "UiTemplateArn": ui_template_arn,
@@ -156,23 +167,63 @@ def on_create(event):
       "CognitoUserPoolId": cognito_user_pool_id,
       "CognitoClientId": cognito_client_id,
       "UserErrors": user_errors
-    }'''
-    return f'{cognito_user_pool_id},{cognito_client_id}'
+    }
+    
+    # save result to s3 temp file for downstream to access
+    s3.put_object(
+      Body=json.dumps(result),
+      Bucket=S3_BUCKET_NAME,
+      Key=S3_BUCKET_TEMP_FILE_KEY
+    )
+    
+    return result["CognitoUserPoolId"]
 
 def on_update(event):
   return
 
 def on_delete(event):
   # Delete UI Template
-  sagemaker.delete_human_task_ui(HumanTaskUiName=HUMAN_TASK_UI_NAME)
-
+  try:
+    sagemaker.delete_human_task_ui(HumanTaskUiName=HUMAN_TASK_UI_NAME)
+  except Exception as ex:
+    print(ex)
+  
+  # Get Cognitio User Pool Id from workteam
+  cognito_user_pool_id = None
+  ts = sagemaker.list_workteams()
+  if ts is not None and "Workteams" in ts and len(ts["Workteams"]) > 0:
+    cognito_user_pool_id = ts["Workteams"][0]["MemberDefinitions"][0]["CognitoMemberDefinition"]["UserPool"]
+  
+  # Delete Cognito client
+  # Get Cognito User Pool client Id
+  if cognito_user_pool_id is not None and len(cognito_user_pool_id) > 0:
+    clients_response = cognito.list_user_pool_clients(
+        UserPoolId=cognito_user_pool_id,
+        MaxResults=20
+    )
+    if clients_response is not None and "UserPoolClients" in clients_response and len(clients_response["UserPoolClients"]) > 0:
+      for client in clients_response["UserPoolClients"]:
+        if client["ClientName"] == COGNITO_CLIENT_NAME:
+          cognito.delete_user_pool_client(
+              UserPoolId=cognito_user_pool_id,
+              ClientId=client["ClientId"]
+          )
+          
+  # Delete the temp file from S3 bucket
+  s3.delete_object(Bucket=S3_BUCKET_NAME, Key=S3_BUCKET_TEMP_FILE_KEY)
+  
   return {}
 
 def on_complete(event):
   return
 
 def is_complete(event):
-  return { 'IsComplete': True }
+  # Check if human UI created
+  ui = sagemaker.describe_human_task_ui(HumanTaskUiName=HUMAN_TASK_UI_NAME)
+  if ui is not None and ui.get("HumanTaskUiArn") is not None:
+    return { 'IsComplete': True }
+  else:
+    return { 'IsComplete': False }
   
   
 def create_cognito():
@@ -200,15 +251,6 @@ def create_cognito():
     cognito_user_pool_arn = cog_up["UserPool"]["Arn"]
     print("!!! User pool created:", cognito_user_pool_id, cognito_user_pool_arn)
     
-    # Create Cognito User Pool Client
-    cog_client = cognito.create_user_pool_client(
-      UserPoolId=cognito_user_pool_id,
-      ClientName=COGNITO_CLIENT_NAME,
-      GenerateSecret=True
-    )
-    cognito_client_id = cog_client["UserPoolClient"]["ClientId"]
-    print("!!! User pool client created:", cognito_client_id)
-    
     # Create Cognito User Group
     cog_grp = cognito.create_group(
         GroupName=COGNITO_GROUP_NAME,
@@ -226,4 +268,4 @@ def create_cognito():
         UserPoolId=cognito_user_pool_id,
     )
 
-    return cognito_user_pool_id, cognito_user_pool_arn, cognito_client_id
+    return cognito_user_pool_id, cognito_user_pool_arn

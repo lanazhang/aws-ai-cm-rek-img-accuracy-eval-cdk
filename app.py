@@ -27,7 +27,6 @@ frontend_stack = FrontendProvision(app, "FrontProvisionStack",
     env=cdk.Environment(account=os.getenv('CDK_DEFAULT_ACCOUNT'), region=os.getenv('CDK_DEFAULT_REGION')),
     instance_hash_code=instance_hash,
     api_gw_base_url = backend_stack.api_gw_base_url,
-    cognito_user_pool_id = a2i_stack.ouput_cognito_user_pool_id
 )
 
 app.synth()

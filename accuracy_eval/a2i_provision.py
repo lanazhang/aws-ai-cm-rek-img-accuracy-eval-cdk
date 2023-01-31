@@ -14,7 +14,10 @@ from aws_cdk import (
     RemovalPolicy,
     custom_resources as cr,
     CfnOutput,
-    CustomResource
+    CustomResource,
+    Token,
+    Duration,
+    Fn
 )
 from aws_cdk.aws_logs import RetentionDays
 from constructs import Construct
@@ -24,6 +27,11 @@ import json
 
 from iam_role.lambda_provision_role import create_role as lambda_provision_role
 from iam_role.lambda_custom_resource_lambda_role import create_role as lambda_custom_res_role
+from iam_role.lambda_s3_trigger_role import create_role as create_lambda_s3_trigger_role
+
+DYNAMOBD_TASK_TABLE_PREFIX = "cm-accuracy-eval-task"
+DYNAMOBD_DETAIL_TABLE_PREFIX = "cm-accuracy-"
+DYNAMOBD_DETAIL_TABLE_LABELED_INDEX_NAME = "issue_flag-index"
 
 COGNITO_NAME_PREFIX = 'cm-accuracy-eval-user-pool'
 COGNITO_USER_POOL_NAME = 'cm-accuracy-eval-user-pool'
@@ -32,6 +40,8 @@ COGNITO_GROUP_NAME = 'admin'
 COGNITO_USER_POOL_DOMAIN = 'accuracy-eval'
 
 S3_BUCKET_NAME_PREFIX = "cm-accuracy-eval"
+S3_A2I_PREFIX = "a2i/"
+S3_BUCKET_TEMP_FILE_KEY = ".cfn_temp/a2i.json"
 
 A2I_WORKFLOW_NAME_PREFIX = "cm-accuracy-"
 A2I_UI_TEMPLATE_NAME = "cm-accuracy-eval-image-review-ui-template"
@@ -57,6 +67,44 @@ class A2iProvision(Stack):
         
         work_team_arn, a2i_ui_template_arn, cognito_user_pool_arn = None, None, None
        
+        # Create S3 bucket
+        bucket_name = f'{S3_BUCKET_NAME_PREFIX}-{self.account_id}-{self.region}-{self.instance_hash}'
+        s3_bucket = _s3.Bucket(self, 
+            id='cm-eval-bucket', 
+            bucket_name=bucket_name, 
+            removal_policy=RemovalPolicy.DESTROY,
+            cors=[_s3.CorsRule(
+                allowed_headers=["*"],
+                allowed_methods=[_s3.HttpMethods.GET],
+                allowed_origins=["*"])
+            ])
+            
+        # Create Lambdas
+        # Lambda: cm-accuracy-eval-task-s3-a2i-etl
+        lambda_s3_trigger = _lambda.Function(self, 
+            id='s3-trigger', 
+            function_name=f"cm-accuracy-eval-task-s3-a2i-etl-{self.instance_hash}", 
+            runtime=_lambda.Runtime.PYTHON_3_9,
+            handler='cm-accuracy-eval-task-s3-a2i-etl.lambda_handler',
+            code=_lambda.Code.from_asset(os.path.join("./", "lambda/task/s3-trigger")),
+            timeout=Duration.seconds(30),
+            role=create_lambda_s3_trigger_role(self,bucket_name, self.region, self.account_id),
+            memory_size=5120,
+            environment={
+             'DYNAMODB_TABLE_PREFIX': DYNAMOBD_DETAIL_TABLE_PREFIX + f"-{self.instance_hash}",
+             'DYNAMODB_TASK_TABLE': DYNAMOBD_TASK_TABLE_PREFIX + f"-{self.instance_hash}",
+             'DYNAMODB_INDEX_NAME': DYNAMOBD_DETAIL_TABLE_LABELED_INDEX_NAME,
+            }
+        )
+        # create s3 notification for lambda function
+        s3_bucket.add_event_notification(
+                _s3.EventType.OBJECT_CREATED, 
+                aws_s3_notifications.LambdaDestination(lambda_s3_trigger), 
+                _s3.NotificationKeyFilter(
+                    prefix=S3_A2I_PREFIX,
+                    suffix=".json",
+                ))
+            
         # Custom Resource Lambda: cm-accuracy-eval-provision-custom-resource
         lambda_provision = _lambda.Function(self, 
             id='provision-custom-resource', 
@@ -75,7 +123,9 @@ class A2iProvision(Stack):
              'COGNITO_USER_POOL_NAME':f'{COGNITO_USER_POOL_NAME}-{self.instance_hash}',
              'COGNITO_CLIENT_NAME': f'{COGNITO_CLIENT_NAME}-{self.instance_hash}',
              'COGNITO_GROUP_NAME': f'{COGNITO_GROUP_NAME}-{self.instance_hash}',
-             'COGNITO_USER_POOL_DOMAIN': f'{COGNITO_USER_POOL_DOMAIN}-{self.instance_hash}'
+             'COGNITO_USER_POOL_DOMAIN': f'{COGNITO_USER_POOL_DOMAIN}-{self.instance_hash}',
+             'S3_BUCKET_NAME': s3_bucket.bucket_name,
+             'S3_BUCKET_TEMP_FILE_KEY': S3_BUCKET_TEMP_FILE_KEY
             }
         ) 
         c_resource = cr.AwsCustomResource(
@@ -91,7 +141,6 @@ class A2iProvision(Stack):
                     "InvocationType": "RequestResponse",
                     "Payload": "{\"RequestType\": \"Create\"}"
                 },
-                output_paths=["Payload"]
             ),
             on_delete=cr.AwsSdkCall(
                 service="Lambda",
@@ -102,10 +151,9 @@ class A2iProvision(Stack):
                     "InvocationType": "RequestResponse",
                     "Payload": "{\"RequestType\": \"Delete\"}"
                 },
-                # output_paths=["info.current"]
             ),
             role=lambda_custom_res_role(self, bucket_name, self.region, self.account_id)
-        )       
+        )
         
-        self.ouput_cognito_user_pool_id = c_resource.get_response_field("Payload")
-        CfnOutput(self, id="CognitoUserPoolIds", value=self.ouput_cognito_user_pool_id, export_name="CognitoUserPoolId,CognitoUserPoolClientId")
+        self.ouput_cognito_user_pool_id = Fn.join('',Fn.split('"',c_resource.get_response_field("Payload")))
+        CfnOutput(self, id="CognitoUserPoolId", value=self.ouput_cognito_user_pool_id, export_name="CognitoUserPoolId")

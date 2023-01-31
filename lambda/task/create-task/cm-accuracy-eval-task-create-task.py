@@ -25,7 +25,7 @@ def lambda_handler(event, context):
     if name is None or created_by is None:
         return {
             'statusCode': 400,
-            'body': 'Missing paramters. Require taks_name and created_by.'
+            'body': 'Missing paramters. Require task_name and created_by.'
         }        
         
     id = str(uuid.uuid4())

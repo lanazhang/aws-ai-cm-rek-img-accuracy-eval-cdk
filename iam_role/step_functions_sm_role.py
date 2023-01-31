@@ -7,7 +7,7 @@ from iam_role import policy
 def create_role(self, bucket_name, region, account_id):
     # Trust
     new_role = _iam.Role(self, "step-function-role",
-        assumed_by=_iam.ServicePrincipal("lambda.amazonaws.com"),
+        assumed_by=_iam.ServicePrincipal("states.amazonaws.com"),
     )
     # S3
     new_role.add_to_policy(
@@ -39,6 +39,14 @@ def create_role(self, bucket_name, region, account_id):
         _iam.PolicyStatement(
             actions=["lambda:InvokeFunction"],
             resources=[f"arn:aws:lambda:{region}:{account_id}:*"]
+        )
+    )   
+    # StepFunctions
+    # Lambda invoke
+    new_role.add_to_policy(
+        _iam.PolicyStatement(
+            actions=["states:*"],
+            resources=["*"]
         )
     )   
     # X-ray

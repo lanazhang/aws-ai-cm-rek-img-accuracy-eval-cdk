@@ -15,7 +15,8 @@ from aws_cdk import (
     custom_resources as cr,
     CfnOutput,
     CustomResource,
-    Token
+    Token,
+    Fn
 )
 from aws_cdk.aws_logs import RetentionDays
 from aws_cdk.aws_apigateway import IdentitySource
@@ -24,7 +25,6 @@ import os
 import uuid
 import json
 
-from iam_role.lambda_s3_trigger_role import create_role as create_lambda_s3_trigger_role
 from iam_role.lambda_moderate_image_role import create_role as create_lambda_moderate_image_role
 from iam_role.lambda_update_status_role import create_role as create_lambda_update_status_role
 from iam_role.step_functions_sm_role import create_role as create_step_function_role
@@ -73,31 +73,20 @@ class BackendProvision(Stack):
         self.region = os.getenv('CDK_DEFAULT_REGION')
 
         self.instance_hash = instance_hash_code #str(uuid.uuid4())[0:5]
+        bucket_name = f'{S3_BUCKET_NAME_PREFIX}-{self.account_id}-{self.region}-{self.instance_hash}'
+        
         work_team_arn, a2i_ui_template_arn = None, None
         
         print("!!!!", cognito_user_pool_id)
         #if cognito_user_pool_arn is None or not cognito_user_pool_arn.startswith('arn:'):
         #    cognito_user_pool_arn = 'arn:aws:cognito-idp:us-east-1:122702569249:userpool/us-east-1_8fo02lIv0xx'
-        
-        # Create S3 bucket
-        bucket_name = f'{S3_BUCKET_NAME_PREFIX}-{self.account_id}-{self.region}-{self.instance_hash}'
-        s3_bucket = _s3.Bucket(self, 
-            id='cm-eval-bucket', 
-            bucket_name=bucket_name, 
-            removal_policy=RemovalPolicy.DESTROY,
-            cors=[_s3.CorsRule(
-                allowed_headers=["*"],
-                allowed_methods=[_s3.HttpMethods.GET],
-                allowed_origins=["*"])
-            ])
+    
         
         # Create Cognitio User pool and authorizer
         #user_pool = _cognito.UserPool.from_user_pool_id(self, "cm-accuracy-eval-cognito", cognito_user_pool_id.replace('"',''))
-        cognito_user_pool_id = Token.as_string(cognito_user_pool_id).replace('\"','')
-        #pool_arn = f"arn:aws:cognito-idp:{self.region}:{self.account_id}:userpool/{cognito_user_pool_id}"
-        pool_arn = 'arn:aws:cognito-idp:us-east-1:122702569249:userpool/us-east-1_EHVe6SXcu'
+        pool_arn = f"arn:aws:cognito-idp:{self.region}:{self.account_id}:userpool/{cognito_user_pool_id}"
+        #pool_arn = 'arn:aws:cognito-idp:us-east-1:122702569249:userpool/us-east-1_EHVe6SXcu'
         user_pool = _cognito.UserPool.from_user_pool_arn(self, "cm-accuracy-eval-cognito", pool_arn)
-        CfnOutput(self, id="CognitoUserPoolArn", value=cognito_user_pool_id, export_name="CognitoUserPoolArn")
         '''
         user_pool = _cognito.UserPool(self, f"{COGNITO_NAME_PREFIX}-{self.instance_hash}")
         user_pool.add_client("app-client", 
@@ -120,31 +109,7 @@ class BackendProvision(Stack):
             removal_policy=RemovalPolicy.DESTROY
         ) 
         
-        # Create Lambdas
-        # Lambda: cm-accuracy-eval-task-s3-a2i-etl
-        lambda_s3_trigger = _lambda.Function(self, 
-            id='s3-trigger', 
-            function_name=f"cm-accuracy-eval-task-s3-a2i-etl-{self.instance_hash}", 
-            runtime=_lambda.Runtime.PYTHON_3_9,
-            handler='cm-accuracy-eval-task-s3-a2i-etl.lambda_handler',
-            code=_lambda.Code.from_asset(os.path.join("./", "lambda/task/s3-trigger")),
-            timeout=Duration.seconds(30),
-            role=create_lambda_s3_trigger_role(self,bucket_name, self.region, self.account_id),
-            memory_size=5120,
-            environment={
-             'DYNAMODB_TABLE_PREFIX': DYNAMOBD_DETAIL_TABLE_PREFIX,
-             'DYNAMO_TASK_TABLE': DYNAMOBD_TASK_TABLE_PREFIX,
-             'DYNAMO_INDEX_NAME': DYNAMOBD_DETAIL_TABLE_LABELED_INDEX_NAME,
-            }
-        )
-        # create s3 notification for lambda function
-        s3_bucket.add_event_notification(
-                _s3.EventType.OBJECT_CREATED, 
-                aws_s3_notifications.LambdaDestination(lambda_s3_trigger), 
-                _s3.NotificationKeyFilter(
-                    prefix=S3_A2I_PREFIX,
-                    suffix=".json",
-                ))
+
         
         # Step Function - start
         # Lambda: cm-accuracy-eval-task-moderate-image 
@@ -165,7 +130,10 @@ class BackendProvision(Stack):
             handler='cm-accuracy-eval-task-update-status.lambda_handler',
             code=_lambda.Code.from_asset(os.path.join("./", "lambda/task/update-status")),
             role=create_lambda_update_status_role(self,bucket_name, self.region, self.account_id),
-        )      
+            environment={
+             'DYNAMODB_TASK_TABLE': DYNAMOBD_TASK_TABLE_PREFIX + f"-{self.instance_hash}",
+            }
+        )
         # StepFunctions StateMachine
         sm_json = None
         with open('./stepfunctions/cm-accuracy-eval-image-bulk.json', "r") as f:
@@ -205,8 +173,8 @@ class BackendProvision(Stack):
         get_images_role = create_lambda_get_images_role(self,bucket_name, self.region, self.account_id)
         self.create_api_endpoint('get-images', report, "report", "images", "POST", auth, get_images_role, "cm-accuracy-eval-report-get-images", self.instance_hash, 10240, 30, 
             evns={
-             'DYNAMO_INDEX_NAME': DYNAMOBD_DETAIL_TABLE_LABELED_INDEX_NAME,
-             'DYNAMO_TASK_TABLE': DYNAMOBD_TASK_TABLE_PREFIX,
+             'DYNAMODB_INDEX_NAME': DYNAMOBD_DETAIL_TABLE_LABELED_INDEX_NAME,
+             'DYNAMODB_TASK_TABLE': DYNAMOBD_TASK_TABLE_PREFIX + f"-{self.instance_hash}",
              'EXPIRATION_IN_S': S3_PRE_SIGNED_URL_EXPIRATION_IN_S,
             })
  
@@ -214,8 +182,8 @@ class BackendProvision(Stack):
         # Lambda: cm-accuracy-eval-task-get-images-unflaged 
         self.create_api_endpoint('get-images-unflag', report, "report", "images-unflag", "POST", auth, get_images_role, "cm-accuracy-eval-task-get-images-unflaged", self.instance_hash, 10240, 30, 
             evns={
-             'DYNAMO_INDEX_NAME': DYNAMOBD_DETAIL_TABLE_LABELED_INDEX_NAME,
-             'DYNAMO_TASK_TABLE': DYNAMOBD_TASK_TABLE_PREFIX,
+             'DYNAMODB_INDEX_NAME': DYNAMOBD_DETAIL_TABLE_LABELED_INDEX_NAME,
+             'DYNAMODB_TASK_TABLE': DYNAMOBD_TASK_TABLE_PREFIX + f"-{self.instance_hash}",
              'EXPIRATION_IN_S': S3_PRE_SIGNED_URL_EXPIRATION_IN_S,
             })        
  
@@ -224,16 +192,16 @@ class BackendProvision(Stack):
         get_report_role = create_lambda_get_report_role(self,bucket_name, self.region, self.account_id)
         self.create_api_endpoint('get-report', report, "report", "report", "POST", auth, get_report_role, "cm-accuracy-eval-report-get-report", self.instance_hash, 1280, 30, 
             evns={
-             'DYNAMO_INDEX_NAME': DYNAMOBD_DETAIL_TABLE_LABELED_INDEX_NAME,
-             'DYNAMO_TASK_TABLE': DYNAMOBD_TASK_TABLE_PREFIX,
+             'DYNAMODB_INDEX_NAME': DYNAMOBD_DETAIL_TABLE_LABELED_INDEX_NAME,
+             'DYNAMODB_TASK_TABLE': DYNAMOBD_TASK_TABLE_PREFIX + f"-{self.instance_hash}",
             })
             
         # POST /v1/task/tasks
         # Lambda: cm-accuracy-eval-task-get-tasks
         get_tasks_role = create_lambda_get_tasks_role(self,bucket_name, self.region, self.account_id)
-        self.create_api_endpoint('get-tasks', task, "task", "tasks", "POST", auth, get_tasks_role, "cm-accuracy-eval-task-get-tasks", self.instance_hash, 128, 3, 
+        self.create_api_endpoint('get-tasks', task, "task", "tasks", "GET", auth, get_tasks_role, "cm-accuracy-eval-task-get-tasks", self.instance_hash, 128, 3, 
             evns={
-             'DYNAMO_TASK_TABLE': DYNAMOBD_TASK_TABLE_PREFIX,
+             'DYNAMODB_TASK_TABLE': DYNAMOBD_TASK_TABLE_PREFIX + f"-{self.instance_hash}",
             })
 
         # POST /v1/task/create-task
@@ -241,19 +209,19 @@ class BackendProvision(Stack):
         create_task_role = create_lambda_create_task_role(self,bucket_name, self.region, self.account_id)
         self.create_api_endpoint('create-task', task, "task", "create-task", "POST", auth, create_task_role, "cm-accuracy-eval-task-create-task", self.instance_hash, 128, 30, 
             evns={
-             'DYNAMODB_RESULT_TABLE_PREFIX': DYNAMOBD_DETAIL_TABLE_PREFIX,
-             'DYNAMODB_TASK_TABLE': DYNAMOBD_TASK_TABLE_PREFIX,
+             'DYNAMODB_RESULT_TABLE_PREFIX': DYNAMOBD_DETAIL_TABLE_PREFIX + f"-{self.instance_hash}",
+             'DYNAMODB_TASK_TABLE': DYNAMOBD_TASK_TABLE_PREFIX + f"-{self.instance_hash}",
              'S3_BUCKET': bucket_name,
              'S3_KEY_PREFIX': S3_INPUT_PREFIX,
             })
         
         # POST /v1/task/task-with-count
-        # Lamabd: cm-accuracy-eval-job-get-job-with-s3-object-count
+        # Lamabd: cm-accuracy-eval-task-get-task-with-s3-object-count
         get_task_with_count_role = lambda_get_task_with_count_role(self, bucket_name, self.region, self.account_id)
-        self.create_api_endpoint('get-task-with-count', task, "task", "task-with-count", "POST", auth, get_task_with_count_role, "cm-accuracy-eval-job-get-job-with-s3-object-count", self.instance_hash, 2560, 30, 
+        self.create_api_endpoint('get-task-with-count', task, "task", "task-with-count", "POST", auth, get_task_with_count_role, "cm-accuracy-eval-task-get-task-with-s3-object-count", self.instance_hash, 2560, 30, 
             evns={
              'DYNAMODB_INDEX_NAME': DYNAMOBD_DETAIL_TABLE_LABELED_INDEX_NAME,
-             'DYNAMODB_TASK_TABLE': DYNAMOBD_TASK_TABLE_PREFIX,
+             'DYNAMODB_TASK_TABLE': DYNAMOBD_TASK_TABLE_PREFIX + f"-{self.instance_hash}",
              'SUPPORTED_FILE_TYPES': '.jpg,.png,.jpeg',
             }, layer=layer)
         
@@ -262,7 +230,7 @@ class BackendProvision(Stack):
         delete_task_with_count_role = create_lambda_delete_task_role(self,bucket_name, self.region, self.account_id)
         self.create_api_endpoint('delete-task', task, "task", "delete-task", "POST", auth, delete_task_with_count_role, "cm-accuracy-eval-task-delete-task", self.instance_hash, 2560, 30, 
             evns={
-             'DYNAMODB_TASK_TABLE': DYNAMOBD_TASK_TABLE_PREFIX,
+             'DYNAMODB_TASK_TABLE': DYNAMOBD_TASK_TABLE_PREFIX + f"-{self.instance_hash}",
             }, layer=layer)
         
         # POST /v1/task/start-moderation
@@ -270,9 +238,9 @@ class BackendProvision(Stack):
         start_moderation_role = lambda_start_moderation_role(self,bucket_name, self.region, self.account_id)
         self.create_api_endpoint('start-moderation', task, "task", "start-moderation", "POST", auth, start_moderation_role, "cm-accuracy-eval-task-start-moderation", self.instance_hash, 128, 30, 
             evns={
-                "DYNAMODB_TASK_TABLE":DYNAMOBD_TASK_TABLE_PREFIX,
-                "DYNAMODB_RESULT_TABLE_PREFIX": DYNAMOBD_DETAIL_TABLE_PREFIX,
-                "WORK_FLOW_NAME_PREFIX": A2I_WORKFLOW_NAME_PREFIX,
+                "DYNAMODB_TASK_TABLE":DYNAMOBD_TASK_TABLE_PREFIX + f"-{self.instance_hash}",
+                "DYNAMODB_RESULT_TABLE_PREFIX": DYNAMOBD_DETAIL_TABLE_PREFIX + f"-{self.instance_hash}",
+                "WORK_FLOW_NAME_PREFIX": A2I_WORKFLOW_NAME_PREFIX + f"-{self.instance_hash}",
                 "HUMAN_TASK_UI_NAME": f'arn:aws:sagemaker:{self.region}:{self.account_id}:human-task-ui/{A2I_UI_TEMPLATE_NAME}-{self.instance_hash}',
                 "STEP_FUNCTION_STATE_MACHINE_ARN": f"arn:aws:states:{self.region}:{self.account_id}:stateMachine:{STEP_FUNCTION_STATE_MACHINE_NAME_PREFIX}-{self.instance_hash}"
             })
