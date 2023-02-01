@@ -12,27 +12,15 @@ from aws_cdk import (
     CustomResource,
     Duration,
     custom_resources as cr,
+    NestedStack
 )
 from aws_cdk.aws_logs import RetentionDays
 from constructs import Construct
 from iam_role.lambda_provision_web_role import create_role as create_provision_web_role
+from accuracy_eval.constant import *
 
-COGNITO_NAME_PREFIX = 'cm-accuracy-eval-user-pool'
-COGNITO_USER_POOL_NAME = 'cm-accuracy-eval-user-pool'
-COGNITO_CLIENT_NAME = 'web-client'
-COGNITO_GROUP_NAME = 'admin'
-COGNITO_USER_POOL_DOMAIN = 'accuracy-eval'
 
-S3_WEB_BUCKET_NAME_PREFIX = "cm-accuracy-eval-web-console"
-S3_BUCKET_TEMP_FILE_KEY = ".cfn_temp/a2i.json"
-S3_BUCKET_NAME_PREFIX = "cm-accuracy-eval"
-
-A2I_WORKFLOW_NAME_PREFIX = "cm-accuracy-"
-A2I_UI_TEMPLATE_NAME = "cm-accuracy-eval-image-review-ui-template"
-A2I_WORK_FORCE_NAME = 'cm-accuracy-eval-workforce'
-A2I_WORK_TEAM_NAME = 'cm-accuracy-eval-workteam'
-
-class FrontendProvision(Stack):
+class FrontendProvision(NestedStack):
     instance_hash = None
     region = None
     account_id = None
@@ -44,8 +32,9 @@ class FrontendProvision(Stack):
         super().__init__(scope, construct_id, **kwargs)
         self.instance_hash = instance_hash_code #str(uuid.uuid4())[0:5]
         
-        self.account_id = os.getenv('CDK_DEFAULT_ACCOUNT')
-        self.region = os.getenv('CDK_DEFAULT_REGION')
+        self.account_id=os.environ.get("CDK_DEPLOY_ACCOUNT", os.environ["CDK_DEFAULT_ACCOUNT"])
+        self.region=os.environ.get("CDK_DEPLOY_REGION", os.environ["CDK_DEFAULT_REGION"])
+        
         self.api_gw_base_url = api_gw_base_url
         
         web_bucket = _s3.Bucket(

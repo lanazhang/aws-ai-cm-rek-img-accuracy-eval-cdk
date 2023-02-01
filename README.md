@@ -1,8 +1,8 @@
-# AWS AI Content Moderation Accuracy Evaluation CDK Python package
+# AWS AI Content Moderation Accuracy Evaluation PoC-in-a-box
 
 ![workflow digram](static/flow_diagram.png)
 
-The AWS Content Moderation Accuracy Evaluation tool helps you evaluate Amazon Rekognition image moderation's false-positive rate based on your own dataset. For best results, we recommend you use a dataset with 5,000+ images, as fewer images may lead to a skewed result and a biased conclusion.
+The AWS Content Moderation Accuracy Evaluation tool helps you evaluate Amazon Rekognition image moderation's false-positive rate based on your own dataset. 
 
 To evaluate Content Moderation accuracy:
 

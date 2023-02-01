@@ -1,21 +1,31 @@
 #!/usr/bin/env python3
 import aws_cdk as cdk
-
+from aws_cdk import CfnParameter as _cfnParameter
 from aws_cdk import Stack,CfnOutput
 import uuid
 from accuracy_eval.backend_provision import BackendProvision
 from accuracy_eval.frontend_provision import FrontendProvision
 from accuracy_eval.a2i_provision import A2iProvision
 
+env_us_east_1 = cdk.Environment(account="122702569249", region="us-east-1")
+env_us_west_2 = cdk.Environment(account="122702569249", region="us-west-2")
+
 class RootProvision(Stack):
     instance_hash = None
     def __init__(self, scope):
-        super().__init__(scope, "cm-accuracy-eval-RootStack", description="AWS Content Moderation accuracy evaluation provision stack. Beta")
+        super().__init__(scope, "cm-accuracy-eval-RootStack", description="AWS Content Moderation accuracy evaluation provision stack. Beta",
+            env=env_us_west_2
+        )
     
         self.instance_hash = str(uuid.uuid4())[0:5]
-        
+
+        user_emails = _cfnParameter(self, "userEmails", type="String", default="lanaz@amazon.com",
+                                description="The emails for users to log in to the website and A2I. Split by a comma if multiple. You can always add new users after the system is deployed.")
+    
+    
         a2i_stack = A2iProvision(self, "A2iProvisionStack", description="AWS Content Moderation accuracy evaluation - A2I deployment statck.",
-            instance_hash_code=self.instance_hash
+            instance_hash_code=self.instance_hash,
+            user_emails=user_emails
         )
         
         backend_stack = BackendProvision(self, "BackendProvisionStack", description="AWS Content Moderation accuracy evaluation - Backend deployment statck.",

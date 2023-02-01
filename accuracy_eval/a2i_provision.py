@@ -1,5 +1,7 @@
+import aws_cdk as cdk
 from aws_cdk import (
     Stack,
+    NestedStack,
     CfnParameter as _cfnParameter,
     aws_cognito as _cognito,
     aws_s3 as _s3,
@@ -24,46 +26,28 @@ from constructs import Construct
 import os
 import uuid
 import json
+from accuracy_eval.constant import *
 
 from iam_role.lambda_provision_role import create_role as lambda_provision_role
 from iam_role.lambda_custom_resource_lambda_role import create_role as lambda_custom_res_role
 from iam_role.lambda_s3_trigger_role import create_role as create_lambda_s3_trigger_role
 
-DYNAMOBD_TASK_TABLE_PREFIX = "cm-accuracy-eval-task"
-DYNAMOBD_DETAIL_TABLE_PREFIX = "cm-accuracy-"
-DYNAMOBD_DETAIL_TABLE_LABELED_INDEX_NAME = "issue_flag-index"
-
-COGNITO_NAME_PREFIX = 'cm-accuracy-eval-user-pool'
-COGNITO_USER_POOL_NAME = 'cm-accuracy-eval-user-pool'
-COGNITO_CLIENT_NAME = 'web-client'
-COGNITO_GROUP_NAME = 'admin'
-COGNITO_USER_POOL_DOMAIN = 'accuracy-eval'
-
-S3_BUCKET_NAME_PREFIX = "cm-accuracy-eval"
-S3_A2I_PREFIX = "a2i/"
-S3_BUCKET_TEMP_FILE_KEY = ".cfn_temp/a2i.json"
-
-A2I_WORKFLOW_NAME_PREFIX = "cm-accuracy-"
-A2I_UI_TEMPLATE_NAME = "cm-accuracy-eval-image-review-ui-template"
-A2I_WORK_FORCE_NAME = 'cm-accuracy-eval-workforce'
-A2I_WORK_TEAM_NAME = 'cm-accuracy-eval-workteam'
-
-class A2iProvision(Stack):
+class A2iProvision(NestedStack):
     instance_hash = None
     region = None
     account_id = None
     ouput_cognito_user_pool_id = None
+    user_emails = None
 
-    def __init__(self, scope: Construct, construct_id: str, instance_hash_code,**kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, instance_hash_code, user_emails, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
         self.instance_hash = instance_hash_code #str(uuid.uuid4())[0:5]
+        self.user_emails = user_emails
         
-        self.account_id = os.getenv('CDK_DEFAULT_ACCOUNT')
-        self.region = os.getenv('CDK_DEFAULT_REGION')
+        self.account_id=os.environ.get("CDK_DEPLOY_ACCOUNT", os.environ["CDK_DEFAULT_ACCOUNT"])
+        self.region=os.environ.get("CDK_DEPLOY_REGION", os.environ["CDK_DEFAULT_REGION"])
+
         bucket_name = f'{S3_BUCKET_NAME_PREFIX}-{self.account_id}-{self.region}-{self.instance_hash}'
-        
-        user_emails = _cfnParameter(self, "userEmails", type="String", default="lanaz@amazon.com",
-                                    description="The emails for users to log in to the website and A2I. Split by a comma if multiple. You can always add new users after the system is deployed.")
         
         work_team_arn, a2i_ui_template_arn, cognito_user_pool_arn = None, None, None
        

@@ -1,5 +1,6 @@
 from aws_cdk import (
     Stack,
+    NestedStack,
     CfnParameter as _cfnParameter,
     aws_cognito as _cognito,
     aws_s3 as _s3,
@@ -24,6 +25,7 @@ from constructs import Construct
 import os
 import uuid
 import json
+from accuracy_eval.constant import *
 
 from iam_role.lambda_moderate_image_role import create_role as create_lambda_moderate_image_role
 from iam_role.lambda_update_status_role import create_role as create_lambda_update_status_role
@@ -37,30 +39,8 @@ from iam_role.lambda_start_moderation_role import create_role as lambda_start_mo
 from iam_role.lambda_get_task_with_count_role import create_role as lambda_get_task_with_count_role
 from iam_role.lambda_provision_role import create_role as lambda_provision_role
 
-COGNITO_NAME_PREFIX = 'cm-accuracy-eval-user-pool'
 
-DYNAMOBD_TASK_TABLE_PREFIX = "cm-accuracy-eval-task"
-DYNAMOBD_DETAIL_TABLE_PREFIX = "cm-accuracy-"
-DYNAMOBD_DETAIL_TABLE_LABELED_INDEX_NAME = "issue_flag-index"
-
-S3_BUCKET_NAME_PREFIX = "cm-accuracy-eval"
-S3_INPUT_PREFIX = "input/"
-S3_A2I_PREFIX = "a2i/"
-S3_PRE_SIGNED_URL_EXPIRATION_IN_S = "300"
-
-API_NAME_PREFIX = "cm-accuracy-eval-srv"
-STEP_FUNCTION_STATE_MACHINE_NAME_PREFIX = "cm-accuracy-eval-image-sm"
-A2I_WORKFLOW_NAME_PREFIX = "cm-accuracy-"
-A2I_UI_TEMPLATE_NAME = "cm-accuracy-eval-image-review-ui-template"
-A2I_WORK_FORCE_NAME = 'cm-accuracy-eval-workforce'
-A2I_WORK_TEAM_NAME = 'cm-accuracy-eval-workteam'
-
-COGNITO_USER_POOL_NAME = 'cm-accuracy-eval-user-pool'
-COGNITO_CLIENT_NAME = 'web-client'
-COGNITO_GROUP_NAME = 'admin'
-COGNITO_USER_POOL_DOMAIN = 'accuracy-eval'
-
-class BackendProvision(Stack):
+class BackendProvision(NestedStack):
     account_id = None
     region = None
     instance_hash = None
@@ -69,23 +49,16 @@ class BackendProvision(Stack):
     def __init__(self, scope: Construct, construct_id: str, instance_hash_code, cognito_user_pool_id, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
         
-        self.account_id = os.getenv('CDK_DEFAULT_ACCOUNT')
-        self.region = os.getenv('CDK_DEFAULT_REGION')
-
+        self.account_id=os.environ.get("CDK_DEPLOY_ACCOUNT", os.environ["CDK_DEFAULT_ACCOUNT"])
+        self.region=os.environ.get("CDK_DEPLOY_REGION", os.environ["CDK_DEFAULT_REGION"])
+        
         self.instance_hash = instance_hash_code #str(uuid.uuid4())[0:5]
         bucket_name = f'{S3_BUCKET_NAME_PREFIX}-{self.account_id}-{self.region}-{self.instance_hash}'
         
         work_team_arn, a2i_ui_template_arn = None, None
         
-        print("!!!!", cognito_user_pool_id)
-        #if cognito_user_pool_arn is None or not cognito_user_pool_arn.startswith('arn:'):
-        #    cognito_user_pool_arn = 'arn:aws:cognito-idp:us-east-1:122702569249:userpool/us-east-1_8fo02lIv0xx'
-    
-        
         # Create Cognitio User pool and authorizer
-        #user_pool = _cognito.UserPool.from_user_pool_id(self, "cm-accuracy-eval-cognito", cognito_user_pool_id.replace('"',''))
         pool_arn = f"arn:aws:cognito-idp:{self.region}:{self.account_id}:userpool/{cognito_user_pool_id}"
-        #pool_arn = 'arn:aws:cognito-idp:us-east-1:122702569249:userpool/us-east-1_EHVe6SXcu'
         user_pool = _cognito.UserPool.from_user_pool_arn(self, "cm-accuracy-eval-cognito", pool_arn)
         '''
         user_pool = _cognito.UserPool(self, f"{COGNITO_NAME_PREFIX}-{self.instance_hash}")
