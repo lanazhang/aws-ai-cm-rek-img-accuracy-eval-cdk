@@ -38,6 +38,7 @@ from iam_role.lambda_delete_task_role import create_role as create_lambda_delete
 from iam_role.lambda_start_moderation_role import create_role as lambda_start_moderation_role
 from iam_role.lambda_get_task_with_count_role import create_role as lambda_get_task_with_count_role
 from iam_role.lambda_provision_role import create_role as lambda_provision_role
+from iam_role.lambda_export_csv_role import create_role as create_lambda_export_csv_role
 
 
 class BackendProvision(NestedStack):
@@ -81,8 +82,6 @@ class BackendProvision(NestedStack):
             partition_key=_dynamodb.Attribute(name='id', type=_dynamodb.AttributeType.STRING),
             removal_policy=RemovalPolicy.DESTROY
         ) 
-        
-
         
         # Step Function - start
         # Lambda: cm-accuracy-eval-task-moderate-image 
@@ -160,6 +159,16 @@ class BackendProvision(NestedStack):
              'EXPIRATION_IN_S': S3_PRE_SIGNED_URL_EXPIRATION_IN_S,
             })        
  
+        # POST /v1/report/export
+        # Lambda: cm-accuracy-eval-report-export-flagged
+        export_csv_role = create_lambda_export_csv_role(self,bucket_name, self.region, self.account_id)
+        self.create_api_endpoint('export-csv', report, "report", "export", "POST", auth, export_csv_role, "cm-accuracy-eval-report-export-flagged", self.instance_hash, 10240, 30, 
+            evns={
+             'S3_BUCKET_NAME': bucket_name,
+             'S3_REPORT_PREFIX': S3_REPORT_PREFIX,
+             'EXPIRATION_IN_S': S3_PRE_SIGNED_URL_EXPIRATION_IN_S,
+            })      
+            
         # POST /v1/report/report
         # Lambda: cm-accuracy-eval-report-get-report 
         get_report_role = create_lambda_get_report_role(self,bucket_name, self.region, self.account_id)
@@ -182,10 +191,11 @@ class BackendProvision(NestedStack):
         create_task_role = create_lambda_create_task_role(self,bucket_name, self.region, self.account_id)
         self.create_api_endpoint('create-task', task, "task", "create-task", "POST", auth, create_task_role, "cm-accuracy-eval-task-create-task", self.instance_hash, 128, 30, 
             evns={
-             'DYNAMODB_RESULT_TABLE_PREFIX': DYNAMOBD_DETAIL_TABLE_PREFIX + f"-{self.instance_hash}",
+             'DYNAMODB_INDEX_NAME': DYNAMOBD_DETAIL_TABLE_LABELED_INDEX_NAME,
              'DYNAMODB_TASK_TABLE': DYNAMOBD_TASK_TABLE_PREFIX + f"-{self.instance_hash}",
              'S3_BUCKET': bucket_name,
              'S3_KEY_PREFIX': S3_INPUT_PREFIX,
+             'EXPIRATION_IN_S': S3_PRE_SIGNED_URL_EXPIRATION_IN_S
             })
         
         # POST /v1/task/task-with-count
