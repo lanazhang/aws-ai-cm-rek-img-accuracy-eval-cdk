@@ -1,0 +1,942 @@
+{
+  "version": "29.0.0",
+  "artifacts": {
+    "A2iProvisionStack.assets": {
+      "type": "cdk:asset-manifest",
+      "properties": {
+        "file": "A2iProvisionStack.assets.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+      }
+    },
+    "A2iProvisionStack": {
+      "type": "aws:cloudformation:stack",
+      "environment": "aws://122702569249/us-east-1",
+      "properties": {
+        "templateFile": "A2iProvisionStack.template.json",
+        "validateOnSynth": false,
+        "assumeRoleArn": "arn:${AWS::Partition}:iam::122702569249:role/cdk-hnb659fds-deploy-role-122702569249-us-east-1",
+        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::122702569249:role/cdk-hnb659fds-cfn-exec-role-122702569249-us-east-1",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-122702569249-us-east-1/3993df63f30f999d2916ac2a6effb3e3bf8b1b648c4b462c92816b0ff88bcc4f.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
+        "additionalDependencies": [
+          "A2iProvisionStack.assets"
+        ],
+        "lookupRole": {
+          "arn": "arn:${AWS::Partition}:iam::122702569249:role/cdk-hnb659fds-lookup-role-122702569249-us-east-1",
+          "requiresBootstrapStackVersion": 8,
+          "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+        }
+      },
+      "dependencies": [
+        "A2iProvisionStack.assets"
+      ],
+      "metadata": {
+        "/A2iProvisionStack/userEmails": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "userEmails"
+          }
+        ],
+        "/A2iProvisionStack/cm-eval-bucket/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmevalbucketECC5BB74"
+          }
+        ],
+        "/A2iProvisionStack/cm-eval-bucket/Notifications/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmevalbucketNotifications823FA244"
+          }
+        ],
+        "/A2iProvisionStack/cm-eval-bucket/AllowBucketNotificationsToA2iProvisionStacks3triggerED477294": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmevalbucketAllowBucketNotificationsToA2iProvisionStacks3triggerED4772943322068B"
+          }
+        ],
+        "/A2iProvisionStack/lambda-s3-trigger-role/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lambdas3triggerrole97669368"
+          }
+        ],
+        "/A2iProvisionStack/lambda-s3-trigger-role/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lambdas3triggerroleDefaultPolicy64081BD6"
+          }
+        ],
+        "/A2iProvisionStack/s3-trigger/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "s3triggerCE04A23F"
+          }
+        ],
+        "/A2iProvisionStack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC"
+          }
+        ],
+        "/A2iProvisionStack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36"
+          }
+        ],
+        "/A2iProvisionStack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BucketNotificationsHandler050a0587b7544547bf325f094a3db8347ECC3691"
+          }
+        ],
+        "/A2iProvisionStack/lambda-provision-role/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lambdaprovisionrole558E8138"
+          }
+        ],
+        "/A2iProvisionStack/lambda-provision-role/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lambdaprovisionroleDefaultPolicyC934A2D7"
+          }
+        ],
+        "/A2iProvisionStack/provision-custom-resource/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "provisioncustomresource4A073CEE"
+          }
+        ],
+        "/A2iProvisionStack/lambda-custom-res-lambda-role/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lambdacustomreslambdarole4DD61267"
+          }
+        ],
+        "/A2iProvisionStack/lambda-custom-res-lambda-role/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lambdacustomreslambdaroleDefaultPolicy3F0F5737"
+          }
+        ],
+        "/A2iProvisionStack/provision-provider-74fb0/Resource/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "provisionprovider74fb0D12FD8BC"
+          }
+        ],
+        "/A2iProvisionStack/AWS679f53fac002430cb0da5b7982bd2287/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AWS679f53fac002430cb0da5b7982bd22872D164C4C"
+          }
+        ],
+        "/A2iProvisionStack/AWS679f53fac002430cb0da5b7982bd2287/LogRetention/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AWS679f53fac002430cb0da5b7982bd2287LogRetentionCE72797A"
+          }
+        ],
+        "/A2iProvisionStack/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB"
+          }
+        ],
+        "/A2iProvisionStack/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB"
+          }
+        ],
+        "/A2iProvisionStack/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A"
+          }
+        ],
+        "/A2iProvisionStack/CognitoUserPoolId": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CognitoUserPoolId"
+          }
+        ],
+        "/A2iProvisionStack/CDKMetadata/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CDKMetadata"
+          }
+        ],
+        "/A2iProvisionStack/Exports/Output{\"Fn::GetAtt\":[\"provisionprovider74fb0D12FD8BC\",\"Payload\"]}": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ExportsOutputFnGetAttprovisionprovider74fb0D12FD8BCPayloadA976DCF4"
+          }
+        ],
+        "/A2iProvisionStack/BootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BootstrapVersion"
+          }
+        ],
+        "/A2iProvisionStack/CheckBootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CheckBootstrapVersion"
+          }
+        ]
+      },
+      "displayName": "A2iProvisionStack"
+    },
+    "BackendProvisionStack.assets": {
+      "type": "cdk:asset-manifest",
+      "properties": {
+        "file": "BackendProvisionStack.assets.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+      }
+    },
+    "BackendProvisionStack": {
+      "type": "aws:cloudformation:stack",
+      "environment": "aws://122702569249/us-east-1",
+      "properties": {
+        "templateFile": "BackendProvisionStack.template.json",
+        "validateOnSynth": false,
+        "assumeRoleArn": "arn:${AWS::Partition}:iam::122702569249:role/cdk-hnb659fds-deploy-role-122702569249-us-east-1",
+        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::122702569249:role/cdk-hnb659fds-cfn-exec-role-122702569249-us-east-1",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-122702569249-us-east-1/a6accfbe05b926d4cacb319b70aebb53bfae2331985f9a3b80b752b998e35f9e.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
+        "additionalDependencies": [
+          "BackendProvisionStack.assets"
+        ],
+        "lookupRole": {
+          "arn": "arn:${AWS::Partition}:iam::122702569249:role/cdk-hnb659fds-lookup-role-122702569249-us-east-1",
+          "requiresBootstrapStackVersion": 8,
+          "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+        }
+      },
+      "dependencies": [
+        "A2iProvisionStack",
+        "BackendProvisionStack.assets"
+      ],
+      "metadata": {
+        "/BackendProvisionStack/WebAuth-74fb0/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "WebAuth74fb05EE954B0"
+          }
+        ],
+        "/BackendProvisionStack/task-table": [
+          {
+            "type": "aws:cdk:hasPhysicalName",
+            "data": {
+              "Ref": "tasktableA7E41D86"
+            }
+          }
+        ],
+        "/BackendProvisionStack/task-table/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "tasktableA7E41D86"
+          }
+        ],
+        "/BackendProvisionStack/lambda-moderate-image-role/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lambdamoderateimagerole5B910D9E"
+          }
+        ],
+        "/BackendProvisionStack/lambda-moderate-image-role/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lambdamoderateimageroleDefaultPolicy7D7E5C69"
+          }
+        ],
+        "/BackendProvisionStack/moderate-image/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "moderateimage5A277ACD"
+          }
+        ],
+        "/BackendProvisionStack/lambda-update-status-role/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lambdaupdatestatusroleE15DD123"
+          }
+        ],
+        "/BackendProvisionStack/lambda-update-status-role/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lambdaupdatestatusroleDefaultPolicy42BDA881"
+          }
+        ],
+        "/BackendProvisionStack/update-status/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "updatestatus051FB814"
+          }
+        ],
+        "/BackendProvisionStack/step-function-role/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "stepfunctionrole4109EEE1"
+          }
+        ],
+        "/BackendProvisionStack/step-function-role/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "stepfunctionroleDefaultPolicyEA172617"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-image-sm-74fb0": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalimagesm74fb0"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0FB55EBCA"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Deployment/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0Deployment1D71E71707455fe09fecaf8a3a17e9b1b71f9862"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/DeploymentStage.prod/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0DeploymentStageprod48AB4067"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Endpoint": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0EndpointA0D752C8"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v151D8E3C6"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/task/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1taskB7B0B000"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/task/tasks/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1tasktasks0DF9AD06"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/task/tasks/OPTIONS/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1tasktasksOPTIONS2B927454"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/task/tasks/GET/ApiPermission.BackendProvisionStackcmaccuracyevalsrv74fb0941A354D.GET..v1.task.tasks": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1tasktasksGETApiPermissionBackendProvisionStackcmaccuracyevalsrv74fb0941A354DGETv1tasktasks6BC88BBC"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/task/tasks/GET/ApiPermission.Test.BackendProvisionStackcmaccuracyevalsrv74fb0941A354D.GET..v1.task.tasks": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1tasktasksGETApiPermissionTestBackendProvisionStackcmaccuracyevalsrv74fb0941A354DGETv1tasktasks29DFC0DB"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/task/tasks/GET/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1tasktasksGET6384E623"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/task/create-task/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1taskcreatetaskF838B06E"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/task/create-task/OPTIONS/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1taskcreatetaskOPTIONS095B89A2"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/task/create-task/POST/ApiPermission.BackendProvisionStackcmaccuracyevalsrv74fb0941A354D.POST..v1.task.create-task": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1taskcreatetaskPOSTApiPermissionBackendProvisionStackcmaccuracyevalsrv74fb0941A354DPOSTv1taskcreatetask70028391"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/task/create-task/POST/ApiPermission.Test.BackendProvisionStackcmaccuracyevalsrv74fb0941A354D.POST..v1.task.create-task": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1taskcreatetaskPOSTApiPermissionTestBackendProvisionStackcmaccuracyevalsrv74fb0941A354DPOSTv1taskcreatetask4A2E993F"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/task/create-task/POST/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1taskcreatetaskPOST6F75C842"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/task/task-with-count/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1tasktaskwithcountF3B6D665"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/task/task-with-count/OPTIONS/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1tasktaskwithcountOPTIONSBE3D1D2E"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/task/task-with-count/POST/ApiPermission.BackendProvisionStackcmaccuracyevalsrv74fb0941A354D.POST..v1.task.task-with-count": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1tasktaskwithcountPOSTApiPermissionBackendProvisionStackcmaccuracyevalsrv74fb0941A354DPOSTv1tasktaskwithcount58D642BD"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/task/task-with-count/POST/ApiPermission.Test.BackendProvisionStackcmaccuracyevalsrv74fb0941A354D.POST..v1.task.task-with-count": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1tasktaskwithcountPOSTApiPermissionTestBackendProvisionStackcmaccuracyevalsrv74fb0941A354DPOSTv1tasktaskwithcountA27F46B2"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/task/task-with-count/POST/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1tasktaskwithcountPOST59838808"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/task/delete-task/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1taskdeletetaskD49ACE65"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/task/delete-task/OPTIONS/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1taskdeletetaskOPTIONS5DD4C0D1"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/task/delete-task/POST/ApiPermission.BackendProvisionStackcmaccuracyevalsrv74fb0941A354D.POST..v1.task.delete-task": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1taskdeletetaskPOSTApiPermissionBackendProvisionStackcmaccuracyevalsrv74fb0941A354DPOSTv1taskdeletetaskB574C748"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/task/delete-task/POST/ApiPermission.Test.BackendProvisionStackcmaccuracyevalsrv74fb0941A354D.POST..v1.task.delete-task": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1taskdeletetaskPOSTApiPermissionTestBackendProvisionStackcmaccuracyevalsrv74fb0941A354DPOSTv1taskdeletetask0522E49D"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/task/delete-task/POST/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1taskdeletetaskPOST7E34B5EE"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/task/start-moderation/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1taskstartmoderationEB760563"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/task/start-moderation/OPTIONS/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1taskstartmoderationOPTIONS27C5C642"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/task/start-moderation/POST/ApiPermission.BackendProvisionStackcmaccuracyevalsrv74fb0941A354D.POST..v1.task.start-moderation": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1taskstartmoderationPOSTApiPermissionBackendProvisionStackcmaccuracyevalsrv74fb0941A354DPOSTv1taskstartmoderation1910CD0A"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/task/start-moderation/POST/ApiPermission.Test.BackendProvisionStackcmaccuracyevalsrv74fb0941A354D.POST..v1.task.start-moderation": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1taskstartmoderationPOSTApiPermissionTestBackendProvisionStackcmaccuracyevalsrv74fb0941A354DPOSTv1taskstartmoderationDA9B8CFD"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/task/start-moderation/POST/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1taskstartmoderationPOST5C338558"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/report/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1reportF5374F54"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/report/images/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1reportimagesB52B9F38"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/report/images/OPTIONS/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1reportimagesOPTIONS564D3FF0"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/report/images/POST/ApiPermission.BackendProvisionStackcmaccuracyevalsrv74fb0941A354D.POST..v1.report.images": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1reportimagesPOSTApiPermissionBackendProvisionStackcmaccuracyevalsrv74fb0941A354DPOSTv1reportimages4FBBC94F"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/report/images/POST/ApiPermission.Test.BackendProvisionStackcmaccuracyevalsrv74fb0941A354D.POST..v1.report.images": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1reportimagesPOSTApiPermissionTestBackendProvisionStackcmaccuracyevalsrv74fb0941A354DPOSTv1reportimagesA34B2754"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/report/images/POST/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1reportimagesPOST029D2A92"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/report/images-unflag/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1reportimagesunflagF2741802"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/report/images-unflag/OPTIONS/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1reportimagesunflagOPTIONSE2D2E37B"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/report/images-unflag/POST/ApiPermission.BackendProvisionStackcmaccuracyevalsrv74fb0941A354D.POST..v1.report.images-unflag": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1reportimagesunflagPOSTApiPermissionBackendProvisionStackcmaccuracyevalsrv74fb0941A354DPOSTv1reportimagesunflag8E00E6AE"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/report/images-unflag/POST/ApiPermission.Test.BackendProvisionStackcmaccuracyevalsrv74fb0941A354D.POST..v1.report.images-unflag": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1reportimagesunflagPOSTApiPermissionTestBackendProvisionStackcmaccuracyevalsrv74fb0941A354DPOSTv1reportimagesunflagB45E20C3"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/report/images-unflag/POST/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1reportimagesunflagPOST305585E8"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/report/report/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1report29F7D342"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/report/report/OPTIONS/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1reportOPTIONSB74A42C4"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/report/report/POST/ApiPermission.BackendProvisionStackcmaccuracyevalsrv74fb0941A354D.POST..v1.report.report": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1reportPOSTApiPermissionBackendProvisionStackcmaccuracyevalsrv74fb0941A354DPOSTv1reportreport08BC9C74"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/report/report/POST/ApiPermission.Test.BackendProvisionStackcmaccuracyevalsrv74fb0941A354D.POST..v1.report.report": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1reportPOSTApiPermissionTestBackendProvisionStackcmaccuracyevalsrv74fb0941A354DPOSTv1reportreport1E3980E0"
+          }
+        ],
+        "/BackendProvisionStack/cm-accuracy-eval-srv-74fb0/Default/v1/report/report/POST/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalsrv74fb0v1reportPOST2352C3FC"
+          }
+        ],
+        "/BackendProvisionStack/ApiGwBaseUrl": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ApiGwBaseUrl"
+          }
+        ],
+        "/BackendProvisionStack/aws_cli_layer/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "awsclilayerCAD6ED55"
+          }
+        ],
+        "/BackendProvisionStack/lambda-get-images-role/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lambdagetimagesrole4C968B8F"
+          }
+        ],
+        "/BackendProvisionStack/lambda-get-images-role/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lambdagetimagesroleDefaultPolicyC98253A8"
+          }
+        ],
+        "/BackendProvisionStack/get-images/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "getimagesD0150139"
+          }
+        ],
+        "/BackendProvisionStack/get-images-unflag/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "getimagesunflag3E009CFF"
+          }
+        ],
+        "/BackendProvisionStack/lambda-get-report-role/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lambdagetreportroleA9AEE0D9"
+          }
+        ],
+        "/BackendProvisionStack/lambda-get-report-role/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lambdagetreportroleDefaultPolicyCD994859"
+          }
+        ],
+        "/BackendProvisionStack/get-report/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "getreportC20EA912"
+          }
+        ],
+        "/BackendProvisionStack/lambda-get-tasks-role/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lambdagettasksrole701880C5"
+          }
+        ],
+        "/BackendProvisionStack/lambda-get-tasks-role/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lambdagettasksroleDefaultPolicy692EED3A"
+          }
+        ],
+        "/BackendProvisionStack/get-tasks/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "gettasks8547A8E8"
+          }
+        ],
+        "/BackendProvisionStack/lambda-create-task-role/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lambdacreatetaskroleAC06549B"
+          }
+        ],
+        "/BackendProvisionStack/lambda-create-task-role/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lambdacreatetaskroleDefaultPolicy2EC36FF9"
+          }
+        ],
+        "/BackendProvisionStack/create-task/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "createtaskF577D8C1"
+          }
+        ],
+        "/BackendProvisionStack/lambda-get-task-with-count-role/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lambdagettaskwithcountrole84FDC269"
+          }
+        ],
+        "/BackendProvisionStack/lambda-get-task-with-count-role/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lambdagettaskwithcountroleDefaultPolicy5FA05FB7"
+          }
+        ],
+        "/BackendProvisionStack/get-task-with-count/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "gettaskwithcount876195FD"
+          }
+        ],
+        "/BackendProvisionStack/lambda-delete-task-role/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lambdadeletetaskroleBFAEE627"
+          }
+        ],
+        "/BackendProvisionStack/lambda-delete-task-role/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lambdadeletetaskroleDefaultPolicyAE30BBF8"
+          }
+        ],
+        "/BackendProvisionStack/delete-task/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "deletetaskA3876CBC"
+          }
+        ],
+        "/BackendProvisionStack/lambda-start-moderation-role/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lambdastartmoderationrole388750D5"
+          }
+        ],
+        "/BackendProvisionStack/lambda-start-moderation-role/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lambdastartmoderationroleDefaultPolicyD8E18F86"
+          }
+        ],
+        "/BackendProvisionStack/start-moderation/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "startmoderation87BE6DD9"
+          }
+        ],
+        "/BackendProvisionStack/CDKMetadata/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CDKMetadata"
+          }
+        ],
+        "/BackendProvisionStack/Exports/Output{\"Ref\":\"cmaccuracyevalsrv74fb0FB55EBCA\"}": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ExportsOutputRefcmaccuracyevalsrv74fb0FB55EBCAE60B324C"
+          }
+        ],
+        "/BackendProvisionStack/Exports/Output{\"Ref\":\"cmaccuracyevalsrv74fb0DeploymentStageprod48AB4067\"}": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ExportsOutputRefcmaccuracyevalsrv74fb0DeploymentStageprod48AB4067027823DB"
+          }
+        ],
+        "/BackendProvisionStack/BootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BootstrapVersion"
+          }
+        ],
+        "/BackendProvisionStack/CheckBootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CheckBootstrapVersion"
+          }
+        ]
+      },
+      "displayName": "BackendProvisionStack"
+    },
+    "FrontProvisionStack.assets": {
+      "type": "cdk:asset-manifest",
+      "properties": {
+        "file": "FrontProvisionStack.assets.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+      }
+    },
+    "FrontProvisionStack": {
+      "type": "aws:cloudformation:stack",
+      "environment": "aws://122702569249/us-east-1",
+      "properties": {
+        "templateFile": "FrontProvisionStack.template.json",
+        "validateOnSynth": false,
+        "assumeRoleArn": "arn:${AWS::Partition}:iam::122702569249:role/cdk-hnb659fds-deploy-role-122702569249-us-east-1",
+        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::122702569249:role/cdk-hnb659fds-cfn-exec-role-122702569249-us-east-1",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-122702569249-us-east-1/2bc18f931c6234775a4f847ec43f3f4947d00d9c9832b78d5f0f6144f1e56cfb.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
+        "additionalDependencies": [
+          "FrontProvisionStack.assets"
+        ],
+        "lookupRole": {
+          "arn": "arn:${AWS::Partition}:iam::122702569249:role/cdk-hnb659fds-lookup-role-122702569249-us-east-1",
+          "requiresBootstrapStackVersion": 8,
+          "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+        }
+      },
+      "dependencies": [
+        "BackendProvisionStack",
+        "FrontProvisionStack.assets"
+      ],
+      "metadata": {
+        "/FrontProvisionStack/cm-accuracy-eval-website/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalwebsite90872039"
+          }
+        ],
+        "/FrontProvisionStack/cm-accuracy-eval-website/Policy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalwebsitePolicy26F77A92"
+          }
+        ],
+        "/FrontProvisionStack/cm-accuracy-eval-s3-web-bucket-deploy/AwsCliLayer/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevals3webbucketdeployAwsCliLayerAFF5B049"
+          }
+        ],
+        "/FrontProvisionStack/cm-accuracy-eval-s3-web-bucket-deploy/CustomResource/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevals3webbucketdeployCustomResource22A9ED3D"
+          }
+        ],
+        "/FrontProvisionStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265"
+          }
+        ],
+        "/FrontProvisionStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF"
+          }
+        ],
+        "/FrontProvisionStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536"
+          }
+        ],
+        "/FrontProvisionStack/CloudFrontOriginAccessIdentity/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CloudFrontOriginAccessIdentity04EB66DA"
+          }
+        ],
+        "/FrontProvisionStack/cm-accuracy-eval-cloudfront-dist/CFDistribution": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cmaccuracyevalcloudfrontdistCFDistributionA6FF47AE"
+          }
+        ],
+        "/FrontProvisionStack/CloudFrontWebsiteUrl": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CloudFrontWebsiteUrl"
+          }
+        ],
+        "/FrontProvisionStack/ApiGatewayUrl": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ApiGatewayUrl"
+          }
+        ],
+        "/FrontProvisionStack/lambda-provision-web-role/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lambdaprovisionwebrole7CCD3AFD"
+          }
+        ],
+        "/FrontProvisionStack/lambda-provision-web-role/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lambdaprovisionwebroleDefaultPolicy15027457"
+          }
+        ],
+        "/FrontProvisionStack/provision-update-web-urls/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "provisionupdateweburlsA0474038"
+          }
+        ],
+        "/FrontProvisionStack/provision-web-provider-74fb0/Resource/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "provisionwebprovider74fb0E4F07E98"
+          }
+        ],
+        "/FrontProvisionStack/AWS679f53fac002430cb0da5b7982bd2287/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AWS679f53fac002430cb0da5b7982bd22872D164C4C"
+          }
+        ],
+        "/FrontProvisionStack/AWS679f53fac002430cb0da5b7982bd2287/LogRetention/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AWS679f53fac002430cb0da5b7982bd2287LogRetentionCE72797A"
+          }
+        ],
+        "/FrontProvisionStack/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB"
+          }
+        ],
+        "/FrontProvisionStack/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB"
+          }
+        ],
+        "/FrontProvisionStack/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A"
+          }
+        ],
+        "/FrontProvisionStack/CDKMetadata/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CDKMetadata"
+          }
+        ],
+        "/FrontProvisionStack/BootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BootstrapVersion"
+          }
+        ],
+        "/FrontProvisionStack/CheckBootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CheckBootstrapVersion"
+          }
+        ]
+      },
+      "displayName": "FrontProvisionStack"
+    },
+    "Tree": {
+      "type": "cdk:tree",
+      "properties": {
+        "file": "tree.json"
+      }
+    }
+  }
+}
