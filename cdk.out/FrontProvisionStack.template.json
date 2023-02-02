@@ -1,0 +1,697 @@
+{
+ "Resources": {
+  "cmaccuracyevalwebsite90872039": {
+   "Type": "AWS::S3::Bucket",
+   "Properties": {
+    "AccessControl": "Private",
+    "BucketName": "cm-accuracy-eval-web-console-122702569249-us-east-1-74fb0",
+    "Tags": [
+     {
+      "Key": "aws-cdk:cr-owned:bd3dd732",
+      "Value": "true"
+     }
+    ],
+    "WebsiteConfiguration": {
+     "IndexDocument": "index.html"
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "FrontProvisionStack/cm-accuracy-eval-website/Resource"
+   }
+  },
+  "cmaccuracyevalwebsitePolicy26F77A92": {
+   "Type": "AWS::S3::BucketPolicy",
+   "Properties": {
+    "Bucket": {
+     "Ref": "cmaccuracyevalwebsite90872039"
+    },
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "s3:GetObject",
+       "Effect": "Allow",
+       "Principal": {
+        "CanonicalUser": {
+         "Fn::GetAtt": [
+          "CloudFrontOriginAccessIdentity04EB66DA",
+          "S3CanonicalUserId"
+         ]
+        }
+       },
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          {
+           "Fn::GetAtt": [
+            "cmaccuracyevalwebsite90872039",
+            "Arn"
+           ]
+          },
+          "/*"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "FrontProvisionStack/cm-accuracy-eval-website/Policy/Resource"
+   }
+  },
+  "cmaccuracyevals3webbucketdeployAwsCliLayerAFF5B049": {
+   "Type": "AWS::Lambda::LayerVersion",
+   "Properties": {
+    "Content": {
+     "S3Bucket": "cdk-hnb659fds-assets-122702569249-us-east-1",
+     "S3Key": "5d8d1d0aacea23824c62f362e1e3c14b7dd14a31c71b53bfae4d14a6373c5510.zip"
+    },
+    "Description": "/opt/awscli/aws"
+   },
+   "Metadata": {
+    "aws:cdk:path": "FrontProvisionStack/cm-accuracy-eval-s3-web-bucket-deploy/AwsCliLayer/Resource",
+    "aws:asset:path": "asset.5d8d1d0aacea23824c62f362e1e3c14b7dd14a31c71b53bfae4d14a6373c5510.zip",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Content"
+   }
+  },
+  "cmaccuracyevals3webbucketdeployCustomResource22A9ED3D": {
+   "Type": "Custom::CDKBucketDeployment",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536",
+      "Arn"
+     ]
+    },
+    "SourceBucketNames": [
+     "cdk-hnb659fds-assets-122702569249-us-east-1"
+    ],
+    "SourceObjectKeys": [
+     "2277fd89f2e974f1f0c09a2cd40078336eae4a6d567dd9ca3e9949e123e6777a.zip"
+    ],
+    "DestinationBucketName": {
+     "Ref": "cmaccuracyevalwebsite90872039"
+    },
+    "Prune": true
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "FrontProvisionStack/cm-accuracy-eval-s3-web-bucket-deploy/CustomResource/Default"
+   }
+  },
+  "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "FrontProvisionStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/Resource"
+   }
+  },
+  "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:GetBucket*",
+        "s3:GetObject*",
+        "s3:List*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        "arn:aws:s3:::cdk-hnb659fds-assets-122702569249-us-east-1",
+        "arn:aws:s3:::cdk-hnb659fds-assets-122702569249-us-east-1/*"
+       ]
+      },
+      {
+       "Action": [
+        "s3:Abort*",
+        "s3:DeleteObject*",
+        "s3:GetBucket*",
+        "s3:GetObject*",
+        "s3:List*",
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "cmaccuracyevalwebsite90872039",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "cmaccuracyevalwebsite90872039",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF",
+    "Roles": [
+     {
+      "Ref": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "FrontProvisionStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-122702569249-us-east-1",
+     "S3Key": "2bc265c5e0569aeb24a6349c15bd54e76e845892376515e036627ab0cc70bb64.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265",
+      "Arn"
+     ]
+    },
+    "Handler": "index.handler",
+    "Layers": [
+     {
+      "Ref": "cmaccuracyevals3webbucketdeployAwsCliLayerAFF5B049"
+     }
+    ],
+    "Runtime": "python3.9",
+    "Timeout": 900
+   },
+   "DependsOn": [
+    "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF",
+    "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "FrontProvisionStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/Resource",
+    "aws:asset:path": "asset.2bc265c5e0569aeb24a6349c15bd54e76e845892376515e036627ab0cc70bb64",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "CloudFrontOriginAccessIdentity04EB66DA": {
+   "Type": "AWS::CloudFront::CloudFrontOriginAccessIdentity",
+   "Properties": {
+    "CloudFrontOriginAccessIdentityConfig": {
+     "Comment": "Allows CloudFront to reach the bucket"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "FrontProvisionStack/CloudFrontOriginAccessIdentity/Resource"
+   }
+  },
+  "cmaccuracyevalcloudfrontdistCFDistributionA6FF47AE": {
+   "Type": "AWS::CloudFront::Distribution",
+   "Properties": {
+    "DistributionConfig": {
+     "DefaultCacheBehavior": {
+      "AllowedMethods": [
+       "GET",
+       "HEAD"
+      ],
+      "CachedMethods": [
+       "GET",
+       "HEAD"
+      ],
+      "Compress": true,
+      "ForwardedValues": {
+       "Cookies": {
+        "Forward": "none"
+       },
+       "QueryString": false
+      },
+      "TargetOriginId": "origin1",
+      "ViewerProtocolPolicy": "redirect-to-https"
+     },
+     "DefaultRootObject": "index.html",
+     "Enabled": true,
+     "HttpVersion": "http2",
+     "IPV6Enabled": true,
+     "Origins": [
+      {
+       "ConnectionAttempts": 3,
+       "ConnectionTimeout": 10,
+       "DomainName": {
+        "Fn::GetAtt": [
+         "cmaccuracyevalwebsite90872039",
+         "RegionalDomainName"
+        ]
+       },
+       "Id": "origin1",
+       "S3OriginConfig": {
+        "OriginAccessIdentity": {
+         "Fn::Join": [
+          "",
+          [
+           "origin-access-identity/cloudfront/",
+           {
+            "Ref": "CloudFrontOriginAccessIdentity04EB66DA"
+           }
+          ]
+         ]
+        }
+       }
+      }
+     ],
+     "PriceClass": "PriceClass_100",
+     "ViewerCertificate": {
+      "CloudFrontDefaultCertificate": true
+     }
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "FrontProvisionStack/cm-accuracy-eval-cloudfront-dist/CFDistribution"
+   }
+  },
+  "lambdaprovisionwebrole7CCD3AFD": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "FrontProvisionStack/lambda-provision-web-role/Resource"
+   }
+  },
+  "lambdaprovisionwebroleDefaultPolicy15027457": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+       ],
+       "Effect": "Allow",
+       "Resource": "arn:aws:logs:us-east-1:122702569249:*"
+      },
+      {
+       "Action": [
+        "cloudfront:CreateInvalidation",
+        "lambda:InvokeFunction",
+        "s3:*"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "lambdaprovisionwebroleDefaultPolicy15027457",
+    "Roles": [
+     {
+      "Ref": "lambdaprovisionwebrole7CCD3AFD"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "FrontProvisionStack/lambda-provision-web-role/DefaultPolicy/Resource"
+   }
+  },
+  "provisionupdateweburlsA0474038": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-122702569249-us-east-1",
+     "S3Key": "0f933af719bd829a117a5890001645d3e604326145579493b4c35c59419a86c6.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "lambdaprovisionwebrole7CCD3AFD",
+      "Arn"
+     ]
+    },
+    "Environment": {
+     "Variables": {
+      "APIGW_URL_PLACE_HOLDER": "[[[APIGATEWAY_BASE_URL]]]",
+      "COGNITO_USER_POOL_ID_PLACE_HOLDER": "[[[COGNITO_USER_POOL_ID]]]",
+      "COGNITO_USER_IDENTITY_POOL_ID_PLACE_HOLDER": "[[[COGNITO_IDENTITY_POOL_ID]]]",
+      "COGNITO_REGION_PLACE_HOLDER": "[[[COGNITO_REGION]]]",
+      "COGNITO_USER_POOL_CLIENT_ID_PLACE_HOLDER": "[[[COGNITO_USER_POOL_CLIENT_ID]]]",
+      "APIGW_URL": {
+       "Fn::Join": [
+        "",
+        [
+         "https://",
+         {
+          "Fn::ImportValue": "BackendProvisionStack:ExportsOutputRefcmaccuracyevalsrv74fb0FB55EBCAE60B324C"
+         },
+         ".execute-api.us-east-1.",
+         {
+          "Ref": "AWS::URLSuffix"
+         },
+         "/",
+         {
+          "Fn::ImportValue": "BackendProvisionStack:ExportsOutputRefcmaccuracyevalsrv74fb0DeploymentStageprod48AB4067027823DB"
+         },
+         "/v1"
+        ]
+       ]
+      },
+      "COGNITO_REGION": "us-east-1",
+      "COGNITO_USER_IDENTITY_POOL_ID": "",
+      "S3_WEB_BUCKET_NAME": {
+       "Ref": "cmaccuracyevalwebsite90872039"
+      },
+      "S3_JS_PREFIX": "static/js/",
+      "CLOUD_FRONT_DISTRIBUTION_ID": {
+       "Ref": "cmaccuracyevalcloudfrontdistCFDistributionA6FF47AE"
+      },
+      "S3_BUCKET_NAME": "cm-accuracy-eval-122702569249-us-east-1-74fb0",
+      "S3_BUCKET_TEMP_FILE_KEY": ".cfn_temp/a2i.json"
+     }
+    },
+    "FunctionName": "cm-accuracy-eval-provision-update-web-urls-74fb0",
+    "Handler": "cm-accuracy-eval-provision-update-web-urls.on_event",
+    "MemorySize": 512,
+    "Runtime": "python3.9",
+    "Timeout": 60
+   },
+   "DependsOn": [
+    "lambdaprovisionwebroleDefaultPolicy15027457",
+    "lambdaprovisionwebrole7CCD3AFD"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "FrontProvisionStack/provision-update-web-urls/Resource",
+    "aws:asset:path": "asset.0f933af719bd829a117a5890001645d3e604326145579493b4c35c59419a86c6",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "provisionwebprovider74fb0E4F07E98": {
+   "Type": "Custom::AWS",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "AWS679f53fac002430cb0da5b7982bd22872D164C4C",
+      "Arn"
+     ]
+    },
+    "Create": {
+     "Fn::Join": [
+      "",
+      [
+       "{\"action\":\"invoke\",\"service\":\"Lambda\",\"outputPaths\":[\"Payload\"],\"parameters\":{\"FunctionName\":\"",
+       {
+        "Ref": "provisionupdateweburlsA0474038"
+       },
+       "\",\"InvocationType\":\"RequestResponse\",\"Payload\":\"{\\\"RequestType\\\": \\\"Create\\\"}\"},\"physicalResourceId\":{\"id\":\"Trigger\"}}"
+      ]
+     ]
+    },
+    "InstallLatestAwsSdk": false
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "FrontProvisionStack/provision-web-provider-74fb0/Resource/Default"
+   }
+  },
+  "AWS679f53fac002430cb0da5b7982bd22872D164C4C": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-122702569249-us-east-1",
+     "S3Key": "6bbce4c77566d179835e0a6de3293a27d9021f2f49d0055bb8e465eb6e1d89b1.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "lambdaprovisionwebrole7CCD3AFD",
+      "Arn"
+     ]
+    },
+    "Handler": "index.handler",
+    "Runtime": "nodejs14.x",
+    "Timeout": 120
+   },
+   "DependsOn": [
+    "lambdaprovisionwebroleDefaultPolicy15027457",
+    "lambdaprovisionwebrole7CCD3AFD"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "FrontProvisionStack/AWS679f53fac002430cb0da5b7982bd2287/Resource",
+    "aws:asset:path": "asset.6bbce4c77566d179835e0a6de3293a27d9021f2f49d0055bb8e465eb6e1d89b1",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "AWS679f53fac002430cb0da5b7982bd2287LogRetentionCE72797A": {
+   "Type": "Custom::LogRetention",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A",
+      "Arn"
+     ]
+    },
+    "LogGroupName": {
+     "Fn::Join": [
+      "",
+      [
+       "/aws/lambda/",
+       {
+        "Ref": "AWS679f53fac002430cb0da5b7982bd22872D164C4C"
+       }
+      ]
+     ]
+    },
+    "RetentionInDays": 7
+   },
+   "Metadata": {
+    "aws:cdk:path": "FrontProvisionStack/AWS679f53fac002430cb0da5b7982bd2287/LogRetention/Resource"
+   }
+  },
+  "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "FrontProvisionStack/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource"
+   }
+  },
+  "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "logs:DeleteRetentionPolicy",
+        "logs:PutRetentionPolicy"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB",
+    "Roles": [
+     {
+      "Ref": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "FrontProvisionStack/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Handler": "index.handler",
+    "Runtime": "nodejs14.x",
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-122702569249-us-east-1",
+     "S3Key": "eb5b005c858404ea0c8f68098ed5dcdf5340e02461f149751d10f59c210d5ef8.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB",
+      "Arn"
+     ]
+    }
+   },
+   "DependsOn": [
+    "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB",
+    "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "FrontProvisionStack/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/Resource",
+    "aws:asset:path": "asset.eb5b005c858404ea0c8f68098ed5dcdf5340e02461f149751d10f59c210d5ef8",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/21RXYvCMBD8Lb7HHJ7gPWtFOBCUCnePJU3XumeaSDZBSuh/vyT16+CednZ2splJ3vlixmcTcaWpbM5ThTUPByfkmUWqCjTnYeXlGRwrjvqGxrI3CmX/pG/92KwEwcBoXoUGLsr0HWjHx9H6QTBBBI74MpWBKdHVjeAhbtyKHuwXWEKj2QF1q8AZvfFausQ8QJTe8cBQdDyURkGic31aHNHApDK+OVoT3YSdxRb1Ukog+myiH3RZWyTNJmn+VzzG31CvkZzF2t/dvPYxkWmJb01bgkuHM5VDVioFrOITS4V8eaVCYc7M8lvED4j3tqzw5ExXAhlv5Rjrjl/JnXcX75jM6sreJpT3/tkwsH3vTka/zfkHny0mP4Q4tT5a64CXY/0FpTwEQxECAAA="
+   },
+   "Metadata": {
+    "aws:cdk:path": "FrontProvisionStack/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "CloudFrontWebsiteUrl": {
+   "Value": {
+    "Fn::GetAtt": [
+     "cmaccuracyevalcloudfrontdistCFDistributionA6FF47AE",
+     "DomainName"
+    ]
+   },
+   "Export": {
+    "Name": "CloudFrontWebsiteUrl"
+   }
+  },
+  "ApiGatewayUrl": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Fn::ImportValue": "BackendProvisionStack:ExportsOutputRefcmaccuracyevalsrv74fb0FB55EBCAE60B324C"
+      },
+      ".execute-api.us-east-1.",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/",
+      {
+       "Fn::ImportValue": "BackendProvisionStack:ExportsOutputRefcmaccuracyevalsrv74fb0DeploymentStageprod48AB4067027823DB"
+      },
+      "/"
+     ]
+    ]
+   },
+   "Export": {
+    "Name": "ApiGatewayUrl"
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

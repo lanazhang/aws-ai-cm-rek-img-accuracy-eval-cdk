@@ -1,0 +1,4494 @@
+{
+ "Parameters": {
+  "userEmails": {
+   "Type": "String",
+   "Default": "lanaz@amazon.com",
+   "Description": "The emails for users to log in to the tool and A2I. Split by a comma if multiple. You can always add new users after the system is deployed."
+  },
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Resources": {
+  "cmevalbucketECC5BB74": {
+   "Type": "AWS::S3::Bucket",
+   "Properties": {
+    "BucketName": {
+     "Fn::Join": [
+      "",
+      [
+       "cm-accuracy-eval-",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       "-",
+       {
+        "Ref": "AWS::Region"
+       },
+       "-76c15"
+      ]
+     ]
+    },
+    "CorsConfiguration": {
+     "CorsRules": [
+      {
+       "AllowedHeaders": [
+        "*"
+       ],
+       "AllowedMethods": [
+        "GET"
+       ],
+       "AllowedOrigins": [
+        "*"
+       ]
+      }
+     ]
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-eval-bucket/Resource"
+   }
+  },
+  "cmevalbucketNotifications823FA244": {
+   "Type": "Custom::S3BucketNotifications",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "BucketNotificationsHandler050a0587b7544547bf325f094a3db8347ECC3691",
+      "Arn"
+     ]
+    },
+    "BucketName": {
+     "Ref": "cmevalbucketECC5BB74"
+    },
+    "NotificationConfiguration": {
+     "LambdaFunctionConfigurations": [
+      {
+       "Events": [
+        "s3:ObjectCreated:*"
+       ],
+       "Filter": {
+        "Key": {
+         "FilterRules": [
+          {
+           "Name": "suffix",
+           "Value": ".json"
+          },
+          {
+           "Name": "prefix",
+           "Value": "a2i/"
+          }
+         ]
+        }
+       },
+       "LambdaFunctionArn": {
+        "Fn::GetAtt": [
+         "s3triggerCE04A23F",
+         "Arn"
+        ]
+       }
+      }
+     ]
+    },
+    "Managed": true
+   },
+   "DependsOn": [
+    "cmevalbucketAllowBucketNotificationsToAwsAiContentModerationAccuracyEvaluationInABoxStacks3trigger728720EE378F6601"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-eval-bucket/Notifications/Resource"
+   }
+  },
+  "cmevalbucketAllowBucketNotificationsToAwsAiContentModerationAccuracyEvaluationInABoxStacks3trigger728720EE378F6601": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "s3triggerCE04A23F",
+      "Arn"
+     ]
+    },
+    "Principal": "s3.amazonaws.com",
+    "SourceAccount": {
+     "Ref": "AWS::AccountId"
+    },
+    "SourceArn": {
+     "Fn::GetAtt": [
+      "cmevalbucketECC5BB74",
+      "Arn"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-eval-bucket/AllowBucketNotificationsToAwsAiContentModerationAccuracyEvaluationInABoxStacks3trigger728720EE"
+   }
+  },
+  "lambdaprovisionrole558E8138": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/lambda-provision-role/Resource"
+   }
+  },
+  "lambdaprovisionroleDefaultPolicyC934A2D7": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:DeleteObject",
+        "s3:DeleteObjectVersion",
+        "s3:GetObject",
+        "s3:ListObjects"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:s3:::cm-accuracy-eval-",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          "-",
+          {
+           "Ref": "AWS::Region"
+          },
+          "-76c15"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": "iam:PassRole",
+       "Condition": {
+        "StringEquals": {
+         "iam:PassedToService": "sagemaker.amazonaws.com"
+        }
+       },
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": "iam:PassRole",
+       "Condition": {
+        "StringEquals": {
+         "iam:PassedToService": "rekognition.amazonaws.com"
+        }
+       },
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "cognito-idp:*",
+        "cognito:*",
+        "lambda:InvokeFunction",
+        "rekognition:DetectModerationLabels",
+        "sagemaker:*FlowDefinition",
+        "sagemaker:*HumanLoop*",
+        "sagemaker:*HumanTaskUi*",
+        "sagemaker:*Workforce*",
+        "sagemaker:*Workteam*"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "dynamodb:DeleteTable",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:PutItem"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:dynamodb:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":*"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:logs:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":*"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "lambdaprovisionroleDefaultPolicyC934A2D7",
+    "Roles": [
+     {
+      "Ref": "lambdaprovisionrole558E8138"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/lambda-provision-role/DefaultPolicy/Resource"
+   }
+  },
+  "provisioncustomresource4A073CEE": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "dc48db84067423274d33f6c6a825c21ed460d1fed536b139738fe2bd99908e71.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "lambdaprovisionrole558E8138",
+      "Arn"
+     ]
+    },
+    "Environment": {
+     "Variables": {
+      "HUMAN_TASK_UI_NAME": "cm-accuracy-eval-image-review-ui-template-76c15",
+      "COGNITO_USER_EMAILS": {
+       "Ref": "userEmails"
+      },
+      "WORKFORCE_NAME": "cm-accuracy-eval-workforce-76c15",
+      "WORKTEAM_NAME": "cm-accuracy-eval-workteam-76c15",
+      "COGNITO_USER_POOL_NAME": "cm-accuracy-eval-user-pool-76c15",
+      "COGNITO_CLIENT_NAME": "web-client-76c15",
+      "COGNITO_GROUP_NAME": "admin-76c15",
+      "COGNITO_USER_POOL_DOMAIN": "accuracy-eval-76c15"
+     }
+    },
+    "FunctionName": "cm-accuracy-eval-provision-custom-resource-76c15",
+    "Handler": "cm-accuracy-eval-provision-custom-resource.on_event",
+    "MemorySize": 512,
+    "Runtime": "python3.9",
+    "Timeout": 60
+   },
+   "DependsOn": [
+    "lambdaprovisionroleDefaultPolicyC934A2D7",
+    "lambdaprovisionrole558E8138"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/provision-custom-resource/Resource",
+    "aws:asset:path": "asset.dc48db84067423274d33f6c6a825c21ed460d1fed536b139738fe2bd99908e71",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "provisionprovider76c15317CF2E3": {
+   "Type": "Custom::AWS",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "AWS679f53fac002430cb0da5b7982bd22872D164C4C",
+      "Arn"
+     ]
+    },
+    "Create": {
+     "Fn::Join": [
+      "",
+      [
+       "{\"action\":\"invoke\",\"service\":\"Lambda\",\"parameters\":{\"FunctionName\":\"",
+       {
+        "Ref": "provisioncustomresource4A073CEE"
+       },
+       "\",\"InvocationType\":\"RequestResponse\",\"Payload\":\"{\\\"RequestType\\\": \\\"Create\\\"}\"},\"physicalResourceId\":{\"id\":\"Trigger\"}}"
+      ]
+     ]
+    },
+    "InstallLatestAwsSdk": false
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/provision-provider-76c15/Resource/Default"
+   }
+  },
+  "AWS679f53fac002430cb0da5b7982bd22872D164C4C": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "6bbce4c77566d179835e0a6de3293a27d9021f2f49d0055bb8e465eb6e1d89b1.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "lambdaprovisionrole558E8138",
+      "Arn"
+     ]
+    },
+    "Handler": "index.handler",
+    "Runtime": "nodejs14.x",
+    "Timeout": 120
+   },
+   "DependsOn": [
+    "lambdaprovisionroleDefaultPolicyC934A2D7",
+    "lambdaprovisionrole558E8138"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/AWS679f53fac002430cb0da5b7982bd2287/Resource",
+    "aws:asset:path": "asset.6bbce4c77566d179835e0a6de3293a27d9021f2f49d0055bb8e465eb6e1d89b1",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "AWS679f53fac002430cb0da5b7982bd2287LogRetentionCE72797A": {
+   "Type": "Custom::LogRetention",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A",
+      "Arn"
+     ]
+    },
+    "LogGroupName": {
+     "Fn::Join": [
+      "",
+      [
+       "/aws/lambda/",
+       {
+        "Ref": "AWS679f53fac002430cb0da5b7982bd22872D164C4C"
+       }
+      ]
+     ]
+    },
+    "RetentionInDays": 7
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/AWS679f53fac002430cb0da5b7982bd2287/LogRetention/Resource"
+   }
+  },
+  "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource"
+   }
+  },
+  "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "logs:DeleteRetentionPolicy",
+        "logs:PutRetentionPolicy"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB",
+    "Roles": [
+     {
+      "Ref": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Handler": "index.handler",
+    "Runtime": "nodejs14.x",
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "eb5b005c858404ea0c8f68098ed5dcdf5340e02461f149751d10f59c210d5ef8.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB",
+      "Arn"
+     ]
+    }
+   },
+   "DependsOn": [
+    "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB",
+    "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/Resource",
+    "aws:asset:path": "asset.eb5b005c858404ea0c8f68098ed5dcdf5340e02461f149751d10f59c210d5ef8",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "WebAuthorizer76c15782EC6D3": {
+   "Type": "AWS::ApiGateway::Authorizer",
+   "Properties": {
+    "Name": "AwsAiContentModerationAccuracyEvaluationInABoxStackWebAuthorizer76c15B919F5F9",
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    },
+    "Type": "COGNITO_USER_POOLS",
+    "IdentitySource": "method.request.header.Authorization",
+    "ProviderARNs": [
+     "arn:aws:cognito-idp:us-east-1:122702569249:userpool/us-east-1_8fo02lIv0"
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/WebAuthorizer-76c15/Resource"
+   }
+  },
+  "tasktableA7E41D86": {
+   "Type": "AWS::DynamoDB::Table",
+   "Properties": {
+    "KeySchema": [
+     {
+      "AttributeName": "id",
+      "KeyType": "HASH"
+     }
+    ],
+    "AttributeDefinitions": [
+     {
+      "AttributeName": "id",
+      "AttributeType": "S"
+     }
+    ],
+    "ProvisionedThroughput": {
+     "ReadCapacityUnits": 5,
+     "WriteCapacityUnits": 5
+    },
+    "TableName": "cm-accuracy-eval-task-76c15"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/task-table/Resource"
+   }
+  },
+  "lambdas3triggerrole97669368": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/lambda-s3-trigger-role/Resource"
+   }
+  },
+  "lambdas3triggerroleDefaultPolicy64081BD6": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:DeleteObject",
+        "s3:DeleteObjectVersion",
+        "s3:GetObject",
+        "s3:ListObjects"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:s3:::cm-accuracy-eval-",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          "-",
+          {
+           "Ref": "AWS::Region"
+          },
+          "-76c15"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "dynamodb:DeleteTable",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:PutItem"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:dynamodb:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":*"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:logs:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":*"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "lambdas3triggerroleDefaultPolicy64081BD6",
+    "Roles": [
+     {
+      "Ref": "lambdas3triggerrole97669368"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/lambda-s3-trigger-role/DefaultPolicy/Resource"
+   }
+  },
+  "s3triggerCE04A23F": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "b43331c62a4435e9983bdefcc651cd8233c41db4af815de35737e1c2ae72eac1.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "lambdas3triggerrole97669368",
+      "Arn"
+     ]
+    },
+    "Environment": {
+     "Variables": {
+      "DYNAMODB_TABLE_PREFIX": "cm-accuracy-",
+      "DYNAMO_TASK_TABLE": "cm-accuracy-eval-task",
+      "DYNAMO_INDEX_NAME": "issue_flag-index"
+     }
+    },
+    "FunctionName": "cm-accuracy-eval-task-s3-a2i-etl-76c15",
+    "Handler": "cm-accuracy-eval-task-s3-a2i-etl.lambda_handler",
+    "MemorySize": 5120,
+    "Runtime": "python3.9",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "lambdas3triggerroleDefaultPolicy64081BD6",
+    "lambdas3triggerrole97669368"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/s3-trigger/Resource",
+    "aws:asset:path": "asset.b43331c62a4435e9983bdefcc651cd8233c41db4af815de35737e1c2ae72eac1",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/Resource"
+   }
+  },
+  "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "s3:PutBucketNotification",
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36",
+    "Roles": [
+     {
+      "Ref": "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/DefaultPolicy/Resource"
+   }
+  },
+  "BucketNotificationsHandler050a0587b7544547bf325f094a3db8347ECC3691": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Description": "AWS CloudFormation handler for \"Custom::S3BucketNotifications\" resources (@aws-cdk/aws-s3)",
+    "Code": {
+     "ZipFile": "import boto3  # type: ignore\nimport json\nimport logging\nimport urllib.request\n\ns3 = boto3.client(\"s3\")\n\nEVENTBRIDGE_CONFIGURATION = 'EventBridgeConfiguration'\n\nCONFIGURATION_TYPES = [\"TopicConfigurations\", \"QueueConfigurations\", \"LambdaFunctionConfigurations\"]\n\ndef handler(event: dict, context):\n  response_status = \"SUCCESS\"\n  error_message = \"\"\n  try:\n    props = event[\"ResourceProperties\"]\n    bucket = props[\"BucketName\"]\n    notification_configuration = props[\"NotificationConfiguration\"]\n    request_type = event[\"RequestType\"]\n    managed = props.get('Managed', 'true').lower() == 'true'\n    stack_id = event['StackId']\n\n    if managed:\n      config = handle_managed(request_type, notification_configuration)\n    else:\n      config = handle_unmanaged(bucket, stack_id, request_type, notification_configuration)\n\n    put_bucket_notification_configuration(bucket, config)\n  except Exception as e:\n    logging.exception(\"Failed to put bucket notification configuration\")\n    response_status = \"FAILED\"\n    error_message = f\"Error: {str(e)}. \"\n  finally:\n    submit_response(event, context, response_status, error_message)\n\ndef handle_managed(request_type, notification_configuration):\n  if request_type == 'Delete':\n    return {}\n  return notification_configuration\n\ndef handle_unmanaged(bucket, stack_id, request_type, notification_configuration):\n  external_notifications = find_external_notifications(bucket, stack_id)\n\n  if request_type == 'Delete':\n    return external_notifications\n\n  def with_id(notification):\n    notification['Id'] = f\"{stack_id}-{hash(json.dumps(notification, sort_keys=True))}\"\n    return notification\n\n  notifications = {}\n  for t in CONFIGURATION_TYPES:\n    external = external_notifications.get(t, [])\n    incoming = [with_id(n) for n in notification_configuration.get(t, [])]\n    notifications[t] = external + incoming\n\n  if EVENTBRIDGE_CONFIGURATION in notification_configuration:\n    notifications[EVENTBRIDGE_CONFIGURATION] = notification_configuration[EVENTBRIDGE_CONFIGURATION]\n  elif EVENTBRIDGE_CONFIGURATION in external_notifications:\n    notifications[EVENTBRIDGE_CONFIGURATION] = external_notifications[EVENTBRIDGE_CONFIGURATION]\n\n  return notifications\n\ndef find_external_notifications(bucket, stack_id):\n  existing_notifications = get_bucket_notification_configuration(bucket)\n  external_notifications = {}\n  for t in CONFIGURATION_TYPES:\n    external_notifications[t] = [n for n in existing_notifications.get(t, []) if not n['Id'].startswith(f\"{stack_id}-\")]\n\n  if EVENTBRIDGE_CONFIGURATION in existing_notifications:\n    external_notifications[EVENTBRIDGE_CONFIGURATION] = existing_notifications[EVENTBRIDGE_CONFIGURATION]\n\n  return external_notifications\n\ndef get_bucket_notification_configuration(bucket):\n  return s3.get_bucket_notification_configuration(Bucket=bucket)\n\ndef put_bucket_notification_configuration(bucket, notification_configuration):\n  s3.put_bucket_notification_configuration(Bucket=bucket, NotificationConfiguration=notification_configuration)\n\ndef submit_response(event: dict, context, response_status: str, error_message: str):\n  response_body = json.dumps(\n    {\n      \"Status\": response_status,\n      \"Reason\": f\"{error_message}See the details in CloudWatch Log Stream: {context.log_stream_name}\",\n      \"PhysicalResourceId\": event.get(\"PhysicalResourceId\") or event[\"LogicalResourceId\"],\n      \"StackId\": event[\"StackId\"],\n      \"RequestId\": event[\"RequestId\"],\n      \"LogicalResourceId\": event[\"LogicalResourceId\"],\n      \"NoEcho\": False,\n    }\n  ).encode(\"utf-8\")\n  headers = {\"content-type\": \"\", \"content-length\": str(len(response_body))}\n  try:\n    req = urllib.request.Request(url=event[\"ResponseURL\"], headers=headers, data=response_body, method=\"PUT\")\n    with urllib.request.urlopen(req) as response:\n      print(response.read().decode(\"utf-8\"))\n    print(\"Status code: \" + response.reason)\n  except Exception as e:\n      print(\"send(..) failed executing request.urlopen(..): \" + str(e))\n"
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.9",
+    "Timeout": 300
+   },
+   "DependsOn": [
+    "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36",
+    "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Resource"
+   }
+  },
+  "lambdamoderateimagerole5B910D9E": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/lambda-moderate-image-role/Resource"
+   }
+  },
+  "lambdamoderateimageroleDefaultPolicy7D7E5C69": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:DeleteObject",
+        "s3:DeleteObjectVersion",
+        "s3:GetObject",
+        "s3:ListObjects"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:s3:::cm-accuracy-eval-",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          "-",
+          {
+           "Ref": "AWS::Region"
+          },
+          "-76c15"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": "iam:PassRole",
+       "Condition": {
+        "StringEquals": {
+         "iam:PassedToService": "sagemaker.amazonaws.com"
+        }
+       },
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": "iam:PassRole",
+       "Condition": {
+        "StringEquals": {
+         "iam:PassedToService": "rekognition.amazonaws.com"
+        }
+       },
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "rekognition:DetectModerationLabels",
+        "sagemaker:*FlowDefinition",
+        "sagemaker:*HumanLoop*",
+        "sagemaker:*HumanTaskUi*",
+        "sagemaker:*Workforce*",
+        "sagemaker:*Workteam*"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "dynamodb:DeleteTable",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:PutItem"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:dynamodb:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":*"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:logs:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":*"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "lambdamoderateimageroleDefaultPolicy7D7E5C69",
+    "Roles": [
+     {
+      "Ref": "lambdamoderateimagerole5B910D9E"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/lambda-moderate-image-role/DefaultPolicy/Resource"
+   }
+  },
+  "moderateimage5A277ACD": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "df9c64d1e1bba73862733c64eeb2bd6b5ec937bb740196afb45c968ec99f2773.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "lambdamoderateimagerole5B910D9E",
+      "Arn"
+     ]
+    },
+    "FunctionName": "cm-accuracy-eval-task-moderate-image-76c15",
+    "Handler": "cm-accuracy-eval-task-moderate-image.lambda_handler",
+    "Runtime": "python3.9",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "lambdamoderateimageroleDefaultPolicy7D7E5C69",
+    "lambdamoderateimagerole5B910D9E"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/moderate-image/Resource",
+    "aws:asset:path": "asset.df9c64d1e1bba73862733c64eeb2bd6b5ec937bb740196afb45c968ec99f2773",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "lambdaupdatestatusroleE15DD123": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/lambda-update-status-role/Resource"
+   }
+  },
+  "lambdaupdatestatusroleDefaultPolicy42BDA881": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:DeleteTable",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:PutItem"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:dynamodb:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":*"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:logs:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":*"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "lambdaupdatestatusroleDefaultPolicy42BDA881",
+    "Roles": [
+     {
+      "Ref": "lambdaupdatestatusroleE15DD123"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/lambda-update-status-role/DefaultPolicy/Resource"
+   }
+  },
+  "updatestatus051FB814": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "22987ce7f78fb537676982e5cf6d11af54e1839f7029c2e65f25731a94960a73.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "lambdaupdatestatusroleE15DD123",
+      "Arn"
+     ]
+    },
+    "FunctionName": "cm-accuracy-eval-task-update-status-76c15",
+    "Handler": "cm-accuracy-eval-task-update-status.lambda_handler",
+    "Runtime": "python3.9"
+   },
+   "DependsOn": [
+    "lambdaupdatestatusroleDefaultPolicy42BDA881",
+    "lambdaupdatestatusroleE15DD123"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/update-status/Resource",
+    "aws:asset:path": "asset.22987ce7f78fb537676982e5cf6d11af54e1839f7029c2e65f25731a94960a73",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "stepfunctionrole4109EEE1": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/step-function-role/Resource"
+   }
+  },
+  "stepfunctionroleDefaultPolicyEA172617": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:DeleteObject",
+        "s3:DeleteObjectVersion",
+        "s3:GetObject",
+        "s3:ListObjects"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:s3:::cm-accuracy-eval-",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          "-",
+          {
+           "Ref": "AWS::Region"
+          },
+          "-76c15"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": "iam:PassRole",
+       "Condition": {
+        "StringEquals": {
+         "iam:PassedToService": "sagemaker.amazonaws.com"
+        }
+       },
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": "iam:PassRole",
+       "Condition": {
+        "StringEquals": {
+         "iam:PassedToService": "rekognition.amazonaws.com"
+        }
+       },
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "rekognition:DetectModerationLabels",
+        "sagemaker:*FlowDefinition",
+        "sagemaker:*HumanLoop*",
+        "sagemaker:*HumanTaskUi*",
+        "sagemaker:*Workforce*",
+        "sagemaker:*Workteam*",
+        "xray:GetSamplingRules",
+        "xray:GetSamplingTargets",
+        "xray:PutTelemetryRecords",
+        "xray:PutTraceSegments"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "dynamodb:DeleteTable",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:PutItem"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:dynamodb:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":*"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:lambda:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":*"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:logs:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":*"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "stepfunctionroleDefaultPolicyEA172617",
+    "Roles": [
+     {
+      "Ref": "stepfunctionrole4109EEE1"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/step-function-role/DefaultPolicy/Resource"
+   }
+  },
+  "cmaccuracyevalimagesm76c15": {
+   "Type": "AWS::StepFunctions::StateMachine",
+   "Properties": {
+    "RoleArn": {
+     "Fn::GetAtt": [
+      "stepfunctionrole4109EEE1",
+      "Arn"
+     ]
+    },
+    "DefinitionString": {
+     "Fn::Join": [
+      "",
+      [
+       "{\n  \"Comment\": \"A description of my state machine\",\n  \"StartAt\": \"Iterate Images in S3\",\n  \"States\": {\n    \"Iterate Images in S3\": {\n      \"Type\": \"Map\",\n      \"ItemProcessor\": {\n        \"ProcessorConfig\": {\n          \"Mode\": \"DISTRIBUTED\",\n          \"ExecutionType\": \"EXPRESS\"\n        },\n        \"StartAt\": \"Moderate Image\",\n        \"States\": {\n          \"Moderate Image\": {\n            \"Type\": \"Task\",\n            \"Resource\": \"arn:aws:states:::lambda:invoke\",\n            \"Parameters\": {\n              \"Payload.$\": \"$\",\n              \"FunctionName\": \"arn:aws:lambda:",
+       {
+        "Ref": "AWS::Region"
+       },
+       ":",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":function:cm-accuracy-eval-task-moderate-image-76c15\"\n            },\n            \"Retry\": [\n              {\n                \"ErrorEquals\": [\n                  \"Lambda.ServiceException\",\n                  \"Lambda.AWSLambdaException\",\n                  \"Lambda.SdkClientException\",\n                  \"Lambda.TooManyRequestsException\"\n                ],\n                \"IntervalSeconds\": 2,\n                \"MaxAttempts\": 6,\n                \"BackoffRate\": 2\n              }\n            ],\n            \"End\": true,\n            \"ResultSelector\": {}\n          }\n        }\n      },\n      \"Label\": \"IterateImagesinS3\",\n      \"MaxConcurrency\": 5,\n      \"ItemReader\": {\n        \"Resource\": \"arn:aws:states:::s3:listObjectsV2\",\n        \"Parameters\": {\n          \"Bucket.$\": \"$.S3Bucket\",\n          \"Prefix.$\": \"$.S3Prefix\"\n        },\n        \"ReaderConfig\": {}\n      },\n      \"ItemSelector\": {\n        \"TaskId.$\": \"$.TaskId\",\n        \"S3Bucket.$\": \"$.S3Bucket\",\n        \"S3Key.$\": \"$$.Map.Item.Value.Key\",\n        \"DynamoDBTable.$\": \"$.DynamoDBTable\",\n        \"A2IWorkFlowArn.$\": \"$.A2IWorkFlowArn\"\n      },\n      \"Next\": \"Update moderation task status\",\n      \"ResultPath\": null\n    },\n    \"Update moderation task status\": {\n      \"Type\": \"Task\",\n      \"Resource\": \"arn:aws:states:::lambda:invoke\",\n      \"OutputPath\": \"$.Payload\",\n      \"Parameters\": {\n        \"FunctionName\": \"arn:aws:lambda:",
+       {
+        "Ref": "AWS::Region"
+       },
+       ":",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":function:cm-accuracy-eval-task-update-status-76c15\",\n        \"Payload\": {\n          \"id.$\": \"$.TaskId\",\n          \"status\": \"MODERATION_COMPLETED\"\n        }\n      },\n      \"Retry\": [\n        {\n          \"ErrorEquals\": [\n            \"Lambda.ServiceException\",\n            \"Lambda.AWSLambdaException\",\n            \"Lambda.SdkClientException\",\n            \"Lambda.TooManyRequestsException\"\n          ],\n          \"IntervalSeconds\": 2,\n          \"MaxAttempts\": 6,\n          \"BackoffRate\": 2\n        }\n      ],\n      \"End\": true\n    }\n  }\n}"
+      ]
+     ]
+    },
+    "StateMachineName": "cm-accuracy-eval-image-sm-76c15"
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-image-sm-76c15"
+   }
+  },
+  "cmaccuracyevalsrv76c155D0F7A2E": {
+   "Type": "AWS::ApiGateway::RestApi",
+   "Properties": {
+    "Name": "cm-accuracy-eval-srv-76c15"
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15Deployment58440B20318b39273d35e78d8d20e51ba4d37f52": {
+   "Type": "AWS::ApiGateway::Deployment",
+   "Properties": {
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    },
+    "Description": "Automatically created by the RestApi construct"
+   },
+   "DependsOn": [
+    "cmaccuracyevalsrv76c15v1reportimagesunflagOPTIONS219C0A98",
+    "cmaccuracyevalsrv76c15v1reportimagesunflagPOST24E3DA8C",
+    "cmaccuracyevalsrv76c15v1reportimagesunflag76D47D1D",
+    "cmaccuracyevalsrv76c15v1reportimagesOPTIONSF54FACDA",
+    "cmaccuracyevalsrv76c15v1reportimagesPOST71E299AE",
+    "cmaccuracyevalsrv76c15v1reportimagesF2255064",
+    "cmaccuracyevalsrv76c15v1reportOPTIONS90426805",
+    "cmaccuracyevalsrv76c15v1reportPOST49CC8010",
+    "cmaccuracyevalsrv76c15v1reportB03C8D7B",
+    "cmaccuracyevalsrv76c15v1reportDAADBA13",
+    "cmaccuracyevalsrv76c15v176932479",
+    "cmaccuracyevalsrv76c15v1taskcreatetaskOPTIONS80B62111",
+    "cmaccuracyevalsrv76c15v1taskcreatetaskPOST311F2667",
+    "cmaccuracyevalsrv76c15v1taskcreatetask283B69CB",
+    "cmaccuracyevalsrv76c15v1taskdeletetaskOPTIONS7013DB4D",
+    "cmaccuracyevalsrv76c15v1taskdeletetaskPOST33C4A32D",
+    "cmaccuracyevalsrv76c15v1taskdeletetaskCE8820CF",
+    "cmaccuracyevalsrv76c15v1task68D856A9",
+    "cmaccuracyevalsrv76c15v1taskstartmoderationOPTIONSBAA1AEAF",
+    "cmaccuracyevalsrv76c15v1taskstartmoderationPOSTB7363FA5",
+    "cmaccuracyevalsrv76c15v1taskstartmoderationA3AFAFBF",
+    "cmaccuracyevalsrv76c15v1tasktaskwithcountOPTIONS1B465CD7",
+    "cmaccuracyevalsrv76c15v1tasktaskwithcountPOSTB369280C",
+    "cmaccuracyevalsrv76c15v1tasktaskwithcount377C57A5",
+    "cmaccuracyevalsrv76c15v1tasktasksOPTIONS9C0B1F51",
+    "cmaccuracyevalsrv76c15v1tasktasksPOSTAD27692B",
+    "cmaccuracyevalsrv76c15v1tasktasks9D16E500"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Deployment/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15DeploymentStageprod33D32227": {
+   "Type": "AWS::ApiGateway::Stage",
+   "Properties": {
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    },
+    "DeploymentId": {
+     "Ref": "cmaccuracyevalsrv76c15Deployment58440B20318b39273d35e78d8d20e51ba4d37f52"
+    },
+    "StageName": "prod"
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/DeploymentStage.prod/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15v176932479": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Fn::GetAtt": [
+      "cmaccuracyevalsrv76c155D0F7A2E",
+      "RootResourceId"
+     ]
+    },
+    "PathPart": "v1",
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1task68D856A9": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "cmaccuracyevalsrv76c15v176932479"
+    },
+    "PathPart": "task",
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/task/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1tasktasks9D16E500": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "cmaccuracyevalsrv76c15v1task68D856A9"
+    },
+    "PathPart": "tasks",
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/task/tasks/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1tasktasksOPTIONS9C0B1F51": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "HttpMethod": "OPTIONS",
+    "ResourceId": {
+     "Ref": "cmaccuracyevalsrv76c15v1tasktasks9D16E500"
+    },
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    },
+    "AuthorizationType": "NONE",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/task/tasks/OPTIONS/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1tasktasksPOSTApiPermissionAwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64BPOSTv1tasktasks44CDB42F": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "gettasks8547A8E8",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:",
+       {
+        "Ref": "AWS::Region"
+       },
+       ":",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":",
+       {
+        "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+       },
+       "/",
+       {
+        "Ref": "cmaccuracyevalsrv76c15DeploymentStageprod33D32227"
+       },
+       "/POST/v1/task/tasks"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/task/tasks/POST/ApiPermission.AwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64B.POST..v1.task.tasks"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1tasktasksPOSTApiPermissionTestAwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64BPOSTv1tasktasksE7C41829": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "gettasks8547A8E8",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:",
+       {
+        "Ref": "AWS::Region"
+       },
+       ":",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":",
+       {
+        "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+       },
+       "/test-invoke-stage/POST/v1/task/tasks"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/task/tasks/POST/ApiPermission.Test.AwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64B.POST..v1.task.tasks"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1tasktasksPOSTAD27692B": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "HttpMethod": "POST",
+    "ResourceId": {
+     "Ref": "cmaccuracyevalsrv76c15v1tasktasks9D16E500"
+    },
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    },
+    "AuthorizationType": "COGNITO_USER_POOLS",
+    "AuthorizerId": {
+     "Ref": "WebAuthorizer76c15782EC6D3"
+    },
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Origin": "'*'"
+       },
+       "StatusCode": "200"
+      }
+     ],
+     "Type": "AWS",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:",
+        {
+         "Ref": "AWS::Region"
+        },
+        ":lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "gettasks8547A8E8",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Origin": true
+      },
+      "StatusCode": "200"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/task/tasks/POST/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1taskcreatetask283B69CB": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "cmaccuracyevalsrv76c15v1task68D856A9"
+    },
+    "PathPart": "create-task",
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/task/create-task/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1taskcreatetaskOPTIONS80B62111": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "HttpMethod": "OPTIONS",
+    "ResourceId": {
+     "Ref": "cmaccuracyevalsrv76c15v1taskcreatetask283B69CB"
+    },
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    },
+    "AuthorizationType": "NONE",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/task/create-task/OPTIONS/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1taskcreatetaskPOSTApiPermissionAwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64BPOSTv1taskcreatetask89C1DAED": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "createtaskF577D8C1",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:",
+       {
+        "Ref": "AWS::Region"
+       },
+       ":",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":",
+       {
+        "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+       },
+       "/",
+       {
+        "Ref": "cmaccuracyevalsrv76c15DeploymentStageprod33D32227"
+       },
+       "/POST/v1/task/create-task"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/task/create-task/POST/ApiPermission.AwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64B.POST..v1.task.create-task"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1taskcreatetaskPOSTApiPermissionTestAwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64BPOSTv1taskcreatetask244B29F4": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "createtaskF577D8C1",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:",
+       {
+        "Ref": "AWS::Region"
+       },
+       ":",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":",
+       {
+        "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+       },
+       "/test-invoke-stage/POST/v1/task/create-task"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/task/create-task/POST/ApiPermission.Test.AwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64B.POST..v1.task.create-task"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1taskcreatetaskPOST311F2667": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "HttpMethod": "POST",
+    "ResourceId": {
+     "Ref": "cmaccuracyevalsrv76c15v1taskcreatetask283B69CB"
+    },
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    },
+    "AuthorizationType": "COGNITO_USER_POOLS",
+    "AuthorizerId": {
+     "Ref": "WebAuthorizer76c15782EC6D3"
+    },
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Origin": "'*'"
+       },
+       "StatusCode": "200"
+      }
+     ],
+     "Type": "AWS",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:",
+        {
+         "Ref": "AWS::Region"
+        },
+        ":lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "createtaskF577D8C1",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Origin": true
+      },
+      "StatusCode": "200"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/task/create-task/POST/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1tasktaskwithcount377C57A5": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "cmaccuracyevalsrv76c15v1task68D856A9"
+    },
+    "PathPart": "task-with-count",
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/task/task-with-count/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1tasktaskwithcountOPTIONS1B465CD7": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "HttpMethod": "OPTIONS",
+    "ResourceId": {
+     "Ref": "cmaccuracyevalsrv76c15v1tasktaskwithcount377C57A5"
+    },
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    },
+    "AuthorizationType": "NONE",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/task/task-with-count/OPTIONS/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1tasktaskwithcountPOSTApiPermissionAwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64BPOSTv1tasktaskwithcountD94AB186": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "gettaskwithcount876195FD",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:",
+       {
+        "Ref": "AWS::Region"
+       },
+       ":",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":",
+       {
+        "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+       },
+       "/",
+       {
+        "Ref": "cmaccuracyevalsrv76c15DeploymentStageprod33D32227"
+       },
+       "/POST/v1/task/task-with-count"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/task/task-with-count/POST/ApiPermission.AwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64B.POST..v1.task.task-with-count"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1tasktaskwithcountPOSTApiPermissionTestAwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64BPOSTv1tasktaskwithcount24C70431": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "gettaskwithcount876195FD",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:",
+       {
+        "Ref": "AWS::Region"
+       },
+       ":",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":",
+       {
+        "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+       },
+       "/test-invoke-stage/POST/v1/task/task-with-count"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/task/task-with-count/POST/ApiPermission.Test.AwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64B.POST..v1.task.task-with-count"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1tasktaskwithcountPOSTB369280C": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "HttpMethod": "POST",
+    "ResourceId": {
+     "Ref": "cmaccuracyevalsrv76c15v1tasktaskwithcount377C57A5"
+    },
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    },
+    "AuthorizationType": "COGNITO_USER_POOLS",
+    "AuthorizerId": {
+     "Ref": "WebAuthorizer76c15782EC6D3"
+    },
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Origin": "'*'"
+       },
+       "StatusCode": "200"
+      }
+     ],
+     "Type": "AWS",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:",
+        {
+         "Ref": "AWS::Region"
+        },
+        ":lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "gettaskwithcount876195FD",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Origin": true
+      },
+      "StatusCode": "200"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/task/task-with-count/POST/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1taskdeletetaskCE8820CF": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "cmaccuracyevalsrv76c15v1task68D856A9"
+    },
+    "PathPart": "delete-task",
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/task/delete-task/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1taskdeletetaskOPTIONS7013DB4D": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "HttpMethod": "OPTIONS",
+    "ResourceId": {
+     "Ref": "cmaccuracyevalsrv76c15v1taskdeletetaskCE8820CF"
+    },
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    },
+    "AuthorizationType": "NONE",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/task/delete-task/OPTIONS/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1taskdeletetaskPOSTApiPermissionAwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64BPOSTv1taskdeletetask0B82CD01": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "deletetaskA3876CBC",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:",
+       {
+        "Ref": "AWS::Region"
+       },
+       ":",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":",
+       {
+        "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+       },
+       "/",
+       {
+        "Ref": "cmaccuracyevalsrv76c15DeploymentStageprod33D32227"
+       },
+       "/POST/v1/task/delete-task"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/task/delete-task/POST/ApiPermission.AwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64B.POST..v1.task.delete-task"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1taskdeletetaskPOSTApiPermissionTestAwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64BPOSTv1taskdeletetask3117EEBB": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "deletetaskA3876CBC",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:",
+       {
+        "Ref": "AWS::Region"
+       },
+       ":",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":",
+       {
+        "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+       },
+       "/test-invoke-stage/POST/v1/task/delete-task"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/task/delete-task/POST/ApiPermission.Test.AwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64B.POST..v1.task.delete-task"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1taskdeletetaskPOST33C4A32D": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "HttpMethod": "POST",
+    "ResourceId": {
+     "Ref": "cmaccuracyevalsrv76c15v1taskdeletetaskCE8820CF"
+    },
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    },
+    "AuthorizationType": "COGNITO_USER_POOLS",
+    "AuthorizerId": {
+     "Ref": "WebAuthorizer76c15782EC6D3"
+    },
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Origin": "'*'"
+       },
+       "StatusCode": "200"
+      }
+     ],
+     "Type": "AWS",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:",
+        {
+         "Ref": "AWS::Region"
+        },
+        ":lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "deletetaskA3876CBC",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Origin": true
+      },
+      "StatusCode": "200"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/task/delete-task/POST/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1taskstartmoderationA3AFAFBF": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "cmaccuracyevalsrv76c15v1task68D856A9"
+    },
+    "PathPart": "start-moderation",
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/task/start-moderation/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1taskstartmoderationOPTIONSBAA1AEAF": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "HttpMethod": "OPTIONS",
+    "ResourceId": {
+     "Ref": "cmaccuracyevalsrv76c15v1taskstartmoderationA3AFAFBF"
+    },
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    },
+    "AuthorizationType": "NONE",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/task/start-moderation/OPTIONS/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1taskstartmoderationPOSTApiPermissionAwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64BPOSTv1taskstartmoderation359FB6BD": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "startmoderation87BE6DD9",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:",
+       {
+        "Ref": "AWS::Region"
+       },
+       ":",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":",
+       {
+        "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+       },
+       "/",
+       {
+        "Ref": "cmaccuracyevalsrv76c15DeploymentStageprod33D32227"
+       },
+       "/POST/v1/task/start-moderation"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/task/start-moderation/POST/ApiPermission.AwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64B.POST..v1.task.start-moderation"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1taskstartmoderationPOSTApiPermissionTestAwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64BPOSTv1taskstartmoderation48F6A650": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "startmoderation87BE6DD9",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:",
+       {
+        "Ref": "AWS::Region"
+       },
+       ":",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":",
+       {
+        "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+       },
+       "/test-invoke-stage/POST/v1/task/start-moderation"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/task/start-moderation/POST/ApiPermission.Test.AwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64B.POST..v1.task.start-moderation"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1taskstartmoderationPOSTB7363FA5": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "HttpMethod": "POST",
+    "ResourceId": {
+     "Ref": "cmaccuracyevalsrv76c15v1taskstartmoderationA3AFAFBF"
+    },
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    },
+    "AuthorizationType": "COGNITO_USER_POOLS",
+    "AuthorizerId": {
+     "Ref": "WebAuthorizer76c15782EC6D3"
+    },
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Origin": "'*'"
+       },
+       "StatusCode": "200"
+      }
+     ],
+     "Type": "AWS",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:",
+        {
+         "Ref": "AWS::Region"
+        },
+        ":lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "startmoderation87BE6DD9",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Origin": true
+      },
+      "StatusCode": "200"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/task/start-moderation/POST/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1reportDAADBA13": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "cmaccuracyevalsrv76c15v176932479"
+    },
+    "PathPart": "report",
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/report/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1reportimagesF2255064": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "cmaccuracyevalsrv76c15v1reportDAADBA13"
+    },
+    "PathPart": "images",
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/report/images/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1reportimagesOPTIONSF54FACDA": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "HttpMethod": "OPTIONS",
+    "ResourceId": {
+     "Ref": "cmaccuracyevalsrv76c15v1reportimagesF2255064"
+    },
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    },
+    "AuthorizationType": "NONE",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/report/images/OPTIONS/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1reportimagesPOSTApiPermissionAwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64BPOSTv1reportimagesF1C4FD52": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "getimagesD0150139",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:",
+       {
+        "Ref": "AWS::Region"
+       },
+       ":",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":",
+       {
+        "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+       },
+       "/",
+       {
+        "Ref": "cmaccuracyevalsrv76c15DeploymentStageprod33D32227"
+       },
+       "/POST/v1/report/images"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/report/images/POST/ApiPermission.AwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64B.POST..v1.report.images"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1reportimagesPOSTApiPermissionTestAwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64BPOSTv1reportimagesFAD666AD": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "getimagesD0150139",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:",
+       {
+        "Ref": "AWS::Region"
+       },
+       ":",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":",
+       {
+        "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+       },
+       "/test-invoke-stage/POST/v1/report/images"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/report/images/POST/ApiPermission.Test.AwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64B.POST..v1.report.images"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1reportimagesPOST71E299AE": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "HttpMethod": "POST",
+    "ResourceId": {
+     "Ref": "cmaccuracyevalsrv76c15v1reportimagesF2255064"
+    },
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    },
+    "AuthorizationType": "COGNITO_USER_POOLS",
+    "AuthorizerId": {
+     "Ref": "WebAuthorizer76c15782EC6D3"
+    },
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Origin": "'*'"
+       },
+       "StatusCode": "200"
+      }
+     ],
+     "Type": "AWS",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:",
+        {
+         "Ref": "AWS::Region"
+        },
+        ":lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "getimagesD0150139",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Origin": true
+      },
+      "StatusCode": "200"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/report/images/POST/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1reportimagesunflag76D47D1D": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "cmaccuracyevalsrv76c15v1reportDAADBA13"
+    },
+    "PathPart": "images-unflag",
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/report/images-unflag/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1reportimagesunflagOPTIONS219C0A98": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "HttpMethod": "OPTIONS",
+    "ResourceId": {
+     "Ref": "cmaccuracyevalsrv76c15v1reportimagesunflag76D47D1D"
+    },
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    },
+    "AuthorizationType": "NONE",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/report/images-unflag/OPTIONS/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1reportimagesunflagPOSTApiPermissionAwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64BPOSTv1reportimagesunflagA6F4999A": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "getimagesunflag3E009CFF",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:",
+       {
+        "Ref": "AWS::Region"
+       },
+       ":",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":",
+       {
+        "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+       },
+       "/",
+       {
+        "Ref": "cmaccuracyevalsrv76c15DeploymentStageprod33D32227"
+       },
+       "/POST/v1/report/images-unflag"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/report/images-unflag/POST/ApiPermission.AwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64B.POST..v1.report.images-unflag"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1reportimagesunflagPOSTApiPermissionTestAwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64BPOSTv1reportimagesunflag594AC545": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "getimagesunflag3E009CFF",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:",
+       {
+        "Ref": "AWS::Region"
+       },
+       ":",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":",
+       {
+        "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+       },
+       "/test-invoke-stage/POST/v1/report/images-unflag"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/report/images-unflag/POST/ApiPermission.Test.AwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64B.POST..v1.report.images-unflag"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1reportimagesunflagPOST24E3DA8C": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "HttpMethod": "POST",
+    "ResourceId": {
+     "Ref": "cmaccuracyevalsrv76c15v1reportimagesunflag76D47D1D"
+    },
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    },
+    "AuthorizationType": "COGNITO_USER_POOLS",
+    "AuthorizerId": {
+     "Ref": "WebAuthorizer76c15782EC6D3"
+    },
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Origin": "'*'"
+       },
+       "StatusCode": "200"
+      }
+     ],
+     "Type": "AWS",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:",
+        {
+         "Ref": "AWS::Region"
+        },
+        ":lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "getimagesunflag3E009CFF",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Origin": true
+      },
+      "StatusCode": "200"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/report/images-unflag/POST/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1reportB03C8D7B": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "cmaccuracyevalsrv76c15v1reportDAADBA13"
+    },
+    "PathPart": "report",
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/report/report/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1reportOPTIONS90426805": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "HttpMethod": "OPTIONS",
+    "ResourceId": {
+     "Ref": "cmaccuracyevalsrv76c15v1reportB03C8D7B"
+    },
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    },
+    "AuthorizationType": "NONE",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/report/report/OPTIONS/Resource"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1reportPOSTApiPermissionAwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64BPOSTv1reportreport6C7F716D": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "getreportC20EA912",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:",
+       {
+        "Ref": "AWS::Region"
+       },
+       ":",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":",
+       {
+        "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+       },
+       "/",
+       {
+        "Ref": "cmaccuracyevalsrv76c15DeploymentStageprod33D32227"
+       },
+       "/POST/v1/report/report"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/report/report/POST/ApiPermission.AwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64B.POST..v1.report.report"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1reportPOSTApiPermissionTestAwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64BPOSTv1reportreportA22274EA": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "getreportC20EA912",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:",
+       {
+        "Ref": "AWS::Region"
+       },
+       ":",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":",
+       {
+        "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+       },
+       "/test-invoke-stage/POST/v1/report/report"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/report/report/POST/ApiPermission.Test.AwsAiContentModerationAccuracyEvaluationInABoxStackcmaccuracyevalsrv76c159BDEB64B.POST..v1.report.report"
+   }
+  },
+  "cmaccuracyevalsrv76c15v1reportPOST49CC8010": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "HttpMethod": "POST",
+    "ResourceId": {
+     "Ref": "cmaccuracyevalsrv76c15v1reportB03C8D7B"
+    },
+    "RestApiId": {
+     "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+    },
+    "AuthorizationType": "COGNITO_USER_POOLS",
+    "AuthorizerId": {
+     "Ref": "WebAuthorizer76c15782EC6D3"
+    },
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Origin": "'*'"
+       },
+       "StatusCode": "200"
+      }
+     ],
+     "Type": "AWS",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:",
+        {
+         "Ref": "AWS::Region"
+        },
+        ":lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "getreportC20EA912",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Origin": true
+      },
+      "StatusCode": "200"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/cm-accuracy-eval-srv-76c15/Default/v1/report/report/POST/Resource"
+   }
+  },
+  "awsclilayerCAD6ED55": {
+   "Type": "AWS::Lambda::LayerVersion",
+   "Properties": {
+    "Content": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "bc59defdc2140360a63eec1b75023c6549c8cc4ba32ebfe97947cbdbd905aec8.zip"
+    },
+    "CompatibleRuntimes": [
+     "python3.9"
+    ],
+    "Description": "Base layer with AWS CLI"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/aws_cli_layer/Resource",
+    "aws:asset:path": "asset.bc59defdc2140360a63eec1b75023c6549c8cc4ba32ebfe97947cbdbd905aec8",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Content"
+   }
+  },
+  "lambdagetimagesrole4C968B8F": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/lambda-get-images-role/Resource"
+   }
+  },
+  "lambdagetimagesroleDefaultPolicyC98253A8": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:DeleteObject",
+        "s3:DeleteObjectVersion",
+        "s3:GetObject",
+        "s3:ListObjects"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:s3:::cm-accuracy-eval-",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          "-",
+          {
+           "Ref": "AWS::Region"
+          },
+          "-76c15"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "dynamodb:DeleteTable",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:PutItem"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:dynamodb:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":*"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:logs:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":*"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "lambdagetimagesroleDefaultPolicyC98253A8",
+    "Roles": [
+     {
+      "Ref": "lambdagetimagesrole4C968B8F"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/lambda-get-images-role/DefaultPolicy/Resource"
+   }
+  },
+  "getimagesD0150139": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "cf162ce90b8c546c5d7ca798c96da5215138f7df6bbdb392fab96f4f8849e774.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "lambdagetimagesrole4C968B8F",
+      "Arn"
+     ]
+    },
+    "Environment": {
+     "Variables": {
+      "DYNAMO_INDEX_NAME": "issue_flag-index",
+      "DYNAMO_TASK_TABLE": "cm-accuracy-eval-task",
+      "EXPIRATION_IN_S": "300"
+     }
+    },
+    "FunctionName": "cm-accuracy-eval-report-get-images-76c15",
+    "Handler": "cm-accuracy-eval-report-get-images.lambda_handler",
+    "MemorySize": 10240,
+    "Runtime": "python3.9",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "lambdagetimagesroleDefaultPolicyC98253A8",
+    "lambdagetimagesrole4C968B8F"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/get-images/Resource",
+    "aws:asset:path": "asset.cf162ce90b8c546c5d7ca798c96da5215138f7df6bbdb392fab96f4f8849e774",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "getimagesunflag3E009CFF": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "ee91a44546cf2b6d64794baca16eff794e80e0124b2e3dcb3a5d7c877642aec8.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "lambdagetimagesrole4C968B8F",
+      "Arn"
+     ]
+    },
+    "Environment": {
+     "Variables": {
+      "DYNAMO_INDEX_NAME": "issue_flag-index",
+      "DYNAMO_TASK_TABLE": "cm-accuracy-eval-task",
+      "EXPIRATION_IN_S": "300"
+     }
+    },
+    "FunctionName": "cm-accuracy-eval-task-get-images-unflaged-76c15",
+    "Handler": "cm-accuracy-eval-task-get-images-unflaged.lambda_handler",
+    "MemorySize": 10240,
+    "Runtime": "python3.9",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "lambdagetimagesroleDefaultPolicyC98253A8",
+    "lambdagetimagesrole4C968B8F"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/get-images-unflag/Resource",
+    "aws:asset:path": "asset.ee91a44546cf2b6d64794baca16eff794e80e0124b2e3dcb3a5d7c877642aec8",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "lambdagetreportroleA9AEE0D9": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/lambda-get-report-role/Resource"
+   }
+  },
+  "lambdagetreportroleDefaultPolicyCD994859": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:DeleteTable",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:PutItem"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:dynamodb:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":*"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:logs:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":*"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "lambdagetreportroleDefaultPolicyCD994859",
+    "Roles": [
+     {
+      "Ref": "lambdagetreportroleA9AEE0D9"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/lambda-get-report-role/DefaultPolicy/Resource"
+   }
+  },
+  "getreportC20EA912": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "4be8042abf5a0aefdf41adb7ad98ac80d9fedf84e96f6247054e77409ec6053c.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "lambdagetreportroleA9AEE0D9",
+      "Arn"
+     ]
+    },
+    "Environment": {
+     "Variables": {
+      "DYNAMO_INDEX_NAME": "issue_flag-index",
+      "DYNAMO_TASK_TABLE": "cm-accuracy-eval-task"
+     }
+    },
+    "FunctionName": "cm-accuracy-eval-report-get-report-76c15",
+    "Handler": "cm-accuracy-eval-report-get-report.lambda_handler",
+    "MemorySize": 1280,
+    "Runtime": "python3.9",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "lambdagetreportroleDefaultPolicyCD994859",
+    "lambdagetreportroleA9AEE0D9"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/get-report/Resource",
+    "aws:asset:path": "asset.4be8042abf5a0aefdf41adb7ad98ac80d9fedf84e96f6247054e77409ec6053c",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "lambdagettasksrole701880C5": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/lambda-get-tasks-role/Resource"
+   }
+  },
+  "lambdagettasksroleDefaultPolicy692EED3A": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:DeleteTable",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:PutItem"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:dynamodb:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":*"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:logs:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":*"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "lambdagettasksroleDefaultPolicy692EED3A",
+    "Roles": [
+     {
+      "Ref": "lambdagettasksrole701880C5"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/lambda-get-tasks-role/DefaultPolicy/Resource"
+   }
+  },
+  "gettasks8547A8E8": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "459e13e3af18306a6647da222c5a715b88df12b27cc46a7dae83f0579fb13f16.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "lambdagettasksrole701880C5",
+      "Arn"
+     ]
+    },
+    "Environment": {
+     "Variables": {
+      "DYNAMO_TASK_TABLE": "cm-accuracy-eval-task"
+     }
+    },
+    "FunctionName": "cm-accuracy-eval-task-get-tasks-76c15",
+    "Handler": "cm-accuracy-eval-task-get-tasks.lambda_handler",
+    "MemorySize": 128,
+    "Runtime": "python3.9",
+    "Timeout": 3
+   },
+   "DependsOn": [
+    "lambdagettasksroleDefaultPolicy692EED3A",
+    "lambdagettasksrole701880C5"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/get-tasks/Resource",
+    "aws:asset:path": "asset.459e13e3af18306a6647da222c5a715b88df12b27cc46a7dae83f0579fb13f16",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "lambdacreatetaskroleAC06549B": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/lambda-create-task-role/Resource"
+   }
+  },
+  "lambdacreatetaskroleDefaultPolicy2EC36FF9": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:DeleteObject",
+        "s3:DeleteObjectVersion",
+        "s3:GetObject",
+        "s3:ListObjects"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:s3:::cm-accuracy-eval-",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          "-",
+          {
+           "Ref": "AWS::Region"
+          },
+          "-76c15"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "dynamodb:DeleteTable",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:PutItem"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:dynamodb:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":*"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:logs:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":*"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "lambdacreatetaskroleDefaultPolicy2EC36FF9",
+    "Roles": [
+     {
+      "Ref": "lambdacreatetaskroleAC06549B"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/lambda-create-task-role/DefaultPolicy/Resource"
+   }
+  },
+  "createtaskF577D8C1": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "e88521437cbd1141157ac19f30fc6bbcd2892165503c48e134632040a34f8dab.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "lambdacreatetaskroleAC06549B",
+      "Arn"
+     ]
+    },
+    "Environment": {
+     "Variables": {
+      "DYNAMODB_RESULT_TABLE_PREFIX": "cm-accuracy-",
+      "DYNAMODB_TASK_TABLE": "cm-accuracy-eval-task",
+      "S3_BUCKET": {
+       "Fn::Join": [
+        "",
+        [
+         "cm-accuracy-eval-",
+         {
+          "Ref": "AWS::AccountId"
+         },
+         "-",
+         {
+          "Ref": "AWS::Region"
+         },
+         "-76c15"
+        ]
+       ]
+      },
+      "S3_KEY_PREFIX": "input/"
+     }
+    },
+    "FunctionName": "cm-accuracy-eval-task-create-task-76c15",
+    "Handler": "cm-accuracy-eval-task-create-task.lambda_handler",
+    "MemorySize": 128,
+    "Runtime": "python3.9",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "lambdacreatetaskroleDefaultPolicy2EC36FF9",
+    "lambdacreatetaskroleAC06549B"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/create-task/Resource",
+    "aws:asset:path": "asset.e88521437cbd1141157ac19f30fc6bbcd2892165503c48e134632040a34f8dab",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "lambdagettaskwithcountrole84FDC269": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/lambda-get-task-with-count-role/Resource"
+   }
+  },
+  "lambdagettaskwithcountroleDefaultPolicy5FA05FB7": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:DeleteObject",
+        "s3:DeleteObjectVersion",
+        "s3:GetObject",
+        "s3:ListObjects"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:s3:::cm-accuracy-eval-",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          "-",
+          {
+           "Ref": "AWS::Region"
+          },
+          "-76c15"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "dynamodb:DeleteTable",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:PutItem"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:dynamodb:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":*"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": "iam:PassRole",
+       "Condition": {
+        "StringEquals": {
+         "iam:PassedToService": "sagemaker.amazonaws.com"
+        }
+       },
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "sagemaker:*FlowDefinition",
+        "sagemaker:*HumanLoop*",
+        "sagemaker:*HumanTaskUi*",
+        "sagemaker:*Workforce*",
+        "sagemaker:*Workteam*"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:logs:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":*"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "lambdagettaskwithcountroleDefaultPolicy5FA05FB7",
+    "Roles": [
+     {
+      "Ref": "lambdagettaskwithcountrole84FDC269"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/lambda-get-task-with-count-role/DefaultPolicy/Resource"
+   }
+  },
+  "gettaskwithcount876195FD": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "8f20ea9fb3905ac25fe0733c99ad250ee02e561bd73b1b1c3628dba9b592295d.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "lambdagettaskwithcountrole84FDC269",
+      "Arn"
+     ]
+    },
+    "Environment": {
+     "Variables": {
+      "DYNAMODB_INDEX_NAME": "issue_flag-index",
+      "DYNAMODB_TASK_TABLE": "cm-accuracy-eval-task",
+      "SUPPORTED_FILE_TYPES": ".jpg,.png,.jpeg"
+     }
+    },
+    "FunctionName": "cm-accuracy-eval-job-get-job-with-s3-object-count-76c15",
+    "Handler": "cm-accuracy-eval-job-get-job-with-s3-object-count.lambda_handler",
+    "Layers": [
+     {
+      "Ref": "awsclilayerCAD6ED55"
+     }
+    ],
+    "MemorySize": 2560,
+    "Runtime": "python3.9",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "lambdagettaskwithcountroleDefaultPolicy5FA05FB7",
+    "lambdagettaskwithcountrole84FDC269"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/get-task-with-count/Resource",
+    "aws:asset:path": "asset.8f20ea9fb3905ac25fe0733c99ad250ee02e561bd73b1b1c3628dba9b592295d",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "lambdadeletetaskroleBFAEE627": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/lambda-delete-task-role/Resource"
+   }
+  },
+  "lambdadeletetaskroleDefaultPolicyAE30BBF8": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:DeleteObject",
+        "s3:DeleteObjectVersion",
+        "s3:GetObject",
+        "s3:ListObjects"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:s3:::cm-accuracy-eval-",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          "-",
+          {
+           "Ref": "AWS::Region"
+          },
+          "-76c15"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "dynamodb:DeleteTable",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:PutItem"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:dynamodb:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":*"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": "iam:PassRole",
+       "Condition": {
+        "StringEquals": {
+         "iam:PassedToService": "sagemaker.amazonaws.com"
+        }
+       },
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "sagemaker:*FlowDefinition",
+        "sagemaker:*HumanLoop*",
+        "sagemaker:*HumanTaskUi*",
+        "sagemaker:*Workforce*",
+        "sagemaker:*Workteam*"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:logs:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":*"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "lambdadeletetaskroleDefaultPolicyAE30BBF8",
+    "Roles": [
+     {
+      "Ref": "lambdadeletetaskroleBFAEE627"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/lambda-delete-task-role/DefaultPolicy/Resource"
+   }
+  },
+  "deletetaskA3876CBC": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "d7008b6560617d106a8751e6067dd0f859c12ad65a9a79fcf4ac789fe5a3f6b8.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "lambdadeletetaskroleBFAEE627",
+      "Arn"
+     ]
+    },
+    "Environment": {
+     "Variables": {
+      "DYNAMODB_TASK_TABLE": "cm-accuracy-eval-task"
+     }
+    },
+    "FunctionName": "cm-accuracy-eval-task-delete-task-76c15",
+    "Handler": "cm-accuracy-eval-task-delete-task.lambda_handler",
+    "Layers": [
+     {
+      "Ref": "awsclilayerCAD6ED55"
+     }
+    ],
+    "MemorySize": 2560,
+    "Runtime": "python3.9",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "lambdadeletetaskroleDefaultPolicyAE30BBF8",
+    "lambdadeletetaskroleBFAEE627"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/delete-task/Resource",
+    "aws:asset:path": "asset.d7008b6560617d106a8751e6067dd0f859c12ad65a9a79fcf4ac789fe5a3f6b8",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "lambdastartmoderationrole388750D5": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/lambda-start-moderation-role/Resource"
+   }
+  },
+  "lambdastartmoderationroleDefaultPolicyD8E18F86": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:DeleteObject",
+        "s3:DeleteObjectVersion",
+        "s3:GetObject",
+        "s3:ListObjects"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:s3:::cm-accuracy-eval-",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          "-",
+          {
+           "Ref": "AWS::Region"
+          },
+          "-76c15"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": "iam:PassRole",
+       "Condition": {
+        "StringEquals": {
+         "iam:PassedToService": "sagemaker.amazonaws.com"
+        }
+       },
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": "iam:PassRole",
+       "Condition": {
+        "StringEquals": {
+         "iam:PassedToService": "rekognition.amazonaws.com"
+        }
+       },
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "lambda:GetFunctionConfiguration",
+        "rekognition:DetectModerationLabels",
+        "sagemaker:*FlowDefinition",
+        "sagemaker:*HumanLoop*",
+        "sagemaker:*HumanTaskUi*",
+        "sagemaker:*Workforce*",
+        "sagemaker:*Workteam*",
+        "stepfunctions:StartExecution"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "dynamodb:DeleteTable",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:PutItem"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:dynamodb:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":*"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:logs:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":*"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "lambdastartmoderationroleDefaultPolicyD8E18F86",
+    "Roles": [
+     {
+      "Ref": "lambdastartmoderationrole388750D5"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/lambda-start-moderation-role/DefaultPolicy/Resource"
+   }
+  },
+  "startmoderation87BE6DD9": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "1868f06f7d6a02ecd2854d605c1b46fb2facb56eb04ad91dca6204e5879cb98c.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "lambdastartmoderationrole388750D5",
+      "Arn"
+     ]
+    },
+    "Environment": {
+     "Variables": {
+      "DYNAMODB_TASK_TABLE": "cm-accuracy-eval-task",
+      "DYNAMODB_RESULT_TABLE_PREFIX": "cm-accuracy-",
+      "WORK_FLOW_NAME_PREFIX": "cm-accuracy-",
+      "HUMAN_TASK_UI_NAME": {
+       "Fn::Join": [
+        "",
+        [
+         "arn:aws:sagemaker:",
+         {
+          "Ref": "AWS::Region"
+         },
+         ":",
+         {
+          "Ref": "AWS::AccountId"
+         },
+         ":human-task-ui/cm-accuracy-eval-image-review-ui-template-76c15"
+        ]
+       ]
+      },
+      "STEP_FUNCTION_STATE_MACHINE_ARN": {
+       "Fn::Join": [
+        "",
+        [
+         "arn:aws:states:",
+         {
+          "Ref": "AWS::Region"
+         },
+         ":",
+         {
+          "Ref": "AWS::AccountId"
+         },
+         ":stateMachine:cm-accuracy-eval-image-sm-76c15"
+        ]
+       ]
+      }
+     }
+    },
+    "FunctionName": "cm-accuracy-eval-task-start-moderation-76c15",
+    "Handler": "cm-accuracy-eval-task-start-moderation.lambda_handler",
+    "MemorySize": 128,
+    "Runtime": "python3.9",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "lambdastartmoderationroleDefaultPolicyD8E18F86",
+    "lambdastartmoderationrole388750D5"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/start-moderation/Resource",
+    "aws:asset:path": "asset.1868f06f7d6a02ecd2854d605c1b46fb2facb56eb04ad91dca6204e5879cb98c",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/11RTW/CMAz9LbuHTAyJnYFpJ9Cqsu2KTGtKRj6qOBHqKv77nLSCaic/Pyf28/OLXM7l/AmuNKvqy0yro+z3AaqL2JxsAR4MBvSC64eeFrJfx+qCIRVHNIQ1EN6EBnOsQfbpK3qjiJSz4j3aKiTA9B3vlW00BvdgttCh/0ZP49NpfhMKjOxLpzGVciycVlWXZWZ0E7Q4ABEGkqsUhHYNya1rSl7B5hnQqgYCXqFjka6xKrgvQl84p2kVw9l59cvbcs9JViKFVavy4BG+YatdZ7hrYicZW9dkiQPg9y76CpM992RsNOAd8pw6UQO6ibqzYFzNd/iE47BvBrxfwPY02kVyGBJwB9VZWS5P295BdiKJYb9FFSk4c/BjkX260iZzD23/0pP9iKGNec+Ns7UK+RxFx2Lt80K+yvny6YeUmvnIHhuU5RD/AC5TidxZAgAA"
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsAiContentModerationAccuracyEvaluationInABoxStack/CDKMetadata/Default"
+   },
+   "Condition": "CDKMetadataAvailable"
+  }
+ },
+ "Outputs": {
+  "InfoCurrent": {
+   "Value": {
+    "Fn::GetAtt": [
+     "provisionprovider76c15317CF2E3",
+     "Payload"
+    ]
+   },
+   "Export": {
+    "Name": "CustomResourceOutput"
+   }
+  },
+  "cmaccuracyevalsrv76c15EndpointAA65A77A": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Ref": "cmaccuracyevalsrv76c155D0F7A2E"
+      },
+      ".execute-api.",
+      {
+       "Ref": "AWS::Region"
+      },
+      ".",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/",
+      {
+       "Ref": "cmaccuracyevalsrv76c15DeploymentStageprod33D32227"
+      },
+      "/"
+     ]
+    ]
+   }
+  }
+ },
+ "Conditions": {
+  "CDKMetadataAvailable": {
+   "Fn::Or": [
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "af-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ca-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "cn-north-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "cn-northwest-1"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-north-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-3"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "me-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "sa-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-east-2"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-west-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-west-2"
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}
