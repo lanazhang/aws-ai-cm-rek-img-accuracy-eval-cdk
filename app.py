@@ -46,3 +46,6 @@ app = cdk.App()
 
 root_stack = RootProvision(app)
 
+app.synth()
+
+
