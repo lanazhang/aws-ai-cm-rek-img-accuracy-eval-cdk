@@ -7,6 +7,7 @@ COGNITO_USER_POOL_NAME = 'cm-accuracy-eval-user-pool'
 COGNITO_CLIENT_NAME = 'web-client'
 COGNITO_GROUP_NAME = 'admin'
 COGNITO_USER_POOL_DOMAIN = 'accuracy-eval'
+COGNITO_GT_GROUP_NAME = 'sagemaker-groundtruth-user-pool'
 
 S3_BUCKET_NAME_PREFIX = "cm-accuracy-eval"
 S3_A2I_PREFIX = "a2i/"

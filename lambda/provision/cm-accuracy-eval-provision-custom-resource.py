@@ -24,6 +24,7 @@ COGNITO_CLIENT_NAME = os.environ["COGNITO_CLIENT_NAME"]
 COGNITO_GROUP_NAME = os.environ["COGNITO_GROUP_NAME"]
 COGNITO_USER_POOL_DOMAIN = os.environ["COGNITO_USER_POOL_DOMAIN"]
 COGNITO_USER_EMAILS = os.environ["COGNITO_USER_EMAILS"].split(',')
+COGNITO_GT_GROUP_NAME = os.environ["COGNITO_GT_GROUP_NAME"]
 
 S3_BUCKET_NAME = os.environ["S3_BUCKET_NAME"]
 S3_BUCKET_TEMP_FILE_KEY = os.environ["S3_BUCKET_TEMP_FILE_KEY"]
@@ -59,7 +60,7 @@ def on_create(event):
       cognito_user_pool_id, cognito_user_pool_arn = create_cognito()
       print("1. workteam doesn't exist. Created Cognito user pool:", cognito_user_pool_id, cognito_user_pool_arn, cognito_client_id)
     
-    # Create a new Cognito User Pool Client
+    # Create a new Cognito User Pool Client: for website
     cog_client = cognito.create_user_pool_client(
       UserPoolId=cognito_user_pool_id,
       ClientName=COGNITO_CLIENT_NAME,
@@ -83,7 +84,14 @@ def on_create(event):
               ],
               DesiredDeliveryMediums=['EMAIL']
           )
-          print("2. User created:", user)
+          print("2.1. User created:", user)
+          # Add user to GT group
+          cognito.admin_add_user_to_group(
+            UserPoolId=cognito_user_pool_id,
+            Username=user,
+            GroupName=COGNITO_GT_GROUP_NAME
+          )
+          print("2.2. User added to user group:", COGNITO_GT_GROUP_NAME)
         except Exception as ex:
           print("2. Failed to add user.", ex)
           user_errors.append("Username exists:" + user)

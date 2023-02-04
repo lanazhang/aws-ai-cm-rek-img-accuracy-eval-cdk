@@ -75,7 +75,7 @@ class A2iProvision(NestedStack):
             role=create_lambda_s3_trigger_role(self,bucket_name, self.region, self.account_id),
             memory_size=5120,
             environment={
-             'DYNAMODB_TABLE_PREFIX': DYNAMOBD_DETAIL_TABLE_PREFIX,
+             'DYNAMODB_TABLE_PREFIX': f'{DYNAMOBD_DETAIL_TABLE_PREFIX}-{self.instance_hash}',
              'DYNAMODB_TASK_TABLE': DYNAMOBD_TASK_TABLE_PREFIX + f"-{self.instance_hash}",
              'DYNAMODB_INDEX_NAME': DYNAMOBD_DETAIL_TABLE_LABELED_INDEX_NAME,
             }
@@ -107,6 +107,7 @@ class A2iProvision(NestedStack):
              'COGNITO_USER_POOL_NAME':f'{COGNITO_USER_POOL_NAME}-{self.instance_hash}',
              'COGNITO_CLIENT_NAME': f'{COGNITO_CLIENT_NAME}-{self.instance_hash}',
              'COGNITO_GROUP_NAME': f'{COGNITO_GROUP_NAME}-{self.instance_hash}',
+             'COGNITO_GT_GROUP_NAME': f'{COGNITO_GT_GROUP_NAME}',
              'COGNITO_USER_POOL_DOMAIN': f'{COGNITO_USER_POOL_DOMAIN}-{self.instance_hash}',
              'S3_BUCKET_NAME': s3_bucket.bucket_name,
              'S3_BUCKET_TEMP_FILE_KEY': S3_BUCKET_TEMP_FILE_KEY
