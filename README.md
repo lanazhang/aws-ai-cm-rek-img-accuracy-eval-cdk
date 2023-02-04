@@ -50,12 +50,13 @@ cd aws-ai-cm-rek-img-accuracy-eval-cdk/
 npm install -g aws-cdk
 ```
 
-3. Create 2 Python Virtual Environment
+3. Create Python Virtual Environment
 ```sh
 python3 -m venv .venv
 ```
 
 4. Activate virtual environment
+
   On MacOS or Linux
   ```sh
   source .venv/bin/activate                                       
@@ -79,10 +80,10 @@ export CDK_DEFAULT_REGION=YOUR_TARGET_REGION
 
 7. Bootstrap CDK
 ```
-cdk bootstrap aws://122702569249/us-east-2
+cdk bootstrap aws://${CDK_DEFAULT_ACCOUNT}/${CDK_DEFAULT_REGION}
 ```
 
-8. Deploy CDK package - change the userEmail to your email address (split by comma if multiple).
+8. Deploy CDK package - change the userEmail to your email address (split by comma if multiple). Ex: user1@sample.com,user2@sample.com
 ```
 cdk deploy --all --requires-approval never --parameters userEmails=YOUR_EMAIL_ADDRESS_SPLIT_BY_COMMA
 ```
