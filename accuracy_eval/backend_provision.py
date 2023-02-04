@@ -193,6 +193,7 @@ class BackendProvision(NestedStack):
             evns={
              'DYNAMODB_INDEX_NAME': DYNAMOBD_DETAIL_TABLE_LABELED_INDEX_NAME,
              'DYNAMODB_TASK_TABLE': DYNAMOBD_TASK_TABLE_PREFIX + f"-{self.instance_hash}",
+             "DYNAMODB_RESULT_TABLE_PREFIX": DYNAMOBD_DETAIL_TABLE_PREFIX,
              'S3_BUCKET': bucket_name,
              'S3_KEY_PREFIX': S3_INPUT_PREFIX,
              'EXPIRATION_IN_S': S3_PRE_SIGNED_URL_EXPIRATION_IN_S
@@ -222,7 +223,7 @@ class BackendProvision(NestedStack):
         self.create_api_endpoint('start-moderation', task, "task", "start-moderation", "POST", auth, start_moderation_role, "cm-accuracy-eval-task-start-moderation", self.instance_hash, 128, 30, 
             evns={
                 "DYNAMODB_TASK_TABLE":DYNAMOBD_TASK_TABLE_PREFIX + f"-{self.instance_hash}",
-                "DYNAMODB_RESULT_TABLE_PREFIX": DYNAMOBD_DETAIL_TABLE_PREFIX + f"-{self.instance_hash}",
+                "DYNAMODB_RESULT_TABLE_PREFIX": DYNAMOBD_DETAIL_TABLE_PREFIX,
                 "WORK_FLOW_NAME_PREFIX": A2I_WORKFLOW_NAME_PREFIX + f"-{self.instance_hash}",
                 "HUMAN_TASK_UI_NAME": f'arn:aws:sagemaker:{self.region}:{self.account_id}:human-task-ui/{A2I_UI_TEMPLATE_NAME}-{self.instance_hash}',
                 "STEP_FUNCTION_STATE_MACHINE_ARN": f"arn:aws:states:{self.region}:{self.account_id}:stateMachine:{STEP_FUNCTION_STATE_MACHINE_NAME_PREFIX}-{self.instance_hash}"

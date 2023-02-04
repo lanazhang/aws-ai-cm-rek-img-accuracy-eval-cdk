@@ -75,7 +75,7 @@ class A2iProvision(NestedStack):
             role=create_lambda_s3_trigger_role(self,bucket_name, self.region, self.account_id),
             memory_size=5120,
             environment={
-             'DYNAMODB_TABLE_PREFIX': DYNAMOBD_DETAIL_TABLE_PREFIX + f"-{self.instance_hash}",
+             'DYNAMODB_TABLE_PREFIX': DYNAMOBD_DETAIL_TABLE_PREFIX,
              'DYNAMODB_TASK_TABLE': DYNAMOBD_TASK_TABLE_PREFIX + f"-{self.instance_hash}",
              'DYNAMODB_INDEX_NAME': DYNAMOBD_DETAIL_TABLE_LABELED_INDEX_NAME,
             }
