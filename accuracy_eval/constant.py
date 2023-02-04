@@ -16,7 +16,7 @@ S3_REPORT_PREFIX = "report/"
 S3_PRE_SIGNED_URL_EXPIRATION_IN_S = "300"
 S3_WEB_BUCKET_NAME_PREFIX = "cm-accuracy-eval-website-console"
 
-A2I_WORKFLOW_NAME_PREFIX = "cm-accuracy"
+A2I_WORKFLOW_NAME_PREFIX = "cm-accuracy-result"
 A2I_UI_TEMPLATE_NAME = "cm-accuracy-eval-image-review-ui-template"
 A2I_WORK_FORCE_NAME = 'cm-accuracy-eval-workforce'
 A2I_WORK_TEAM_NAME = 'cm-accuracy-eval-workteam'

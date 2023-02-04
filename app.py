@@ -7,19 +7,18 @@ from accuracy_eval.backend_provision import BackendProvision
 from accuracy_eval.frontend_provision import FrontendProvision
 from accuracy_eval.a2i_provision import A2iProvision
 
-env_us_east_1 = cdk.Environment(account="122702569249", region="us-east-1")
-env_us_west_2 = cdk.Environment(account="122702569249", region="us-west-2")
+
+#env = cdk.Environment(account="TARGET_ACCOUNT_ID", region="TARGET_REGION")
 
 class RootProvision(Stack):
     instance_hash = None
     def __init__(self, scope):
         super().__init__(scope, "cm-accuracy-eval-RootStack", description="AWS Content Moderation accuracy evaluation provision stack. Beta",
-            env=env_us_west_2
         )
     
         self.instance_hash = str(uuid.uuid4())[0:5]
 
-        user_emails = _cfnParameter(self, "userEmails", type="String", default="lanaz@amazon.com",
+        user_emails = _cfnParameter(self, "userEmails", type="String",
                                 description="The emails for users to log in to the website and A2I. Split by a comma if multiple. You can always add new users after the system is deployed.")
     
     

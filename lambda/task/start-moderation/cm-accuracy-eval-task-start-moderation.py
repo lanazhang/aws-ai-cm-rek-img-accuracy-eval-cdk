@@ -61,7 +61,7 @@ def lambda_handler(event, context):
     
 
     # Create A2I workflow
-    a2i_workflow_arn = createA2iWorkflow(item["id"], item["s3_bucket"], WORK_FLOW_NAME_PREFIX + item["id"])
+    a2i_workflow_arn = createA2iWorkflow(item["id"], item["s3_bucket"], WORK_FLOW_NAME_PREFIX + '-' + item["id"])
     print("5. Create A2I workflow: ", a2i_workflow_arn )
     item["a2i_workflow_arn"] = a2i_workflow_arn
 
