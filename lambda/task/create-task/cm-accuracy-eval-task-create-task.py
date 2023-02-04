@@ -52,7 +52,7 @@ def lambda_handler(event, context):
     )
     
     # Create DB table for moderation result
-    task["moderation_result_table"] = f"{DYNAMO_RESULT_TABLE_PREFIX}{id}"
+    task["moderation_result_table"] = f"{DYNAMO_RESULT_TABLE_PREFIX}-{id}"
     try:
         dyn_resource = boto3.resource('dynamodb')
         table = dyn_resource.create_table(

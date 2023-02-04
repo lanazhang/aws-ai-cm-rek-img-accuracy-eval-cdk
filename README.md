@@ -15,17 +15,45 @@ This CDK package will help you deploy the AWS Content Moderation accuracy evalua
 
 ## Prerequisites
 
+install Node.js
+https://nodejs.org/en/download/
+
+Install Python 3.7+
+https://www.python.org/downloads/
+
+Install Pip
+```sh
+python -m ensurepip --upgrade
+```
+
+Install Python Virtual Environment
+```sh
+pip install virtualenv
+```
+
 ```sh
 # Setup the AWS CLI
 aws configure                                                                     
  ```                                                                                  
 
-1. Locally install AWS CDK as the [official documentation](https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html) describes.
-2. [Bootstrap CDK for AWS Account](https://github.com/aws/aws-cdk/blob/master/design/cdk-bootstrap.md) 
-3. Create a Python virtual environment
-  ```sh
-  python3 -m venv .venv                                      
-  ```
+
+1. Clone code
+```sh
+git clone https://github.com/lanazhang/aws-ai-cm-rek-img-accuracy-eval-cdk.git
+```
+```sh
+cd aws-ai-cm-rek-img-accuracy-eval-cdk/
+```
+
+2. Install Node CDK package
+```sh
+npm install -g aws-cdk
+```
+
+3. Create 2 Python Virtual Environment
+```sh
+python3 -m venv .venv
+```
 
 4. Activate virtual environment
   On MacOS or Linux
@@ -37,16 +65,28 @@ aws configure
     .venv\Scripts\activate.bat                                        
 ```
 
-Once the virtualenv is activated, you can install the required dependencies.
+5. Once the virtualenv is activated, you can install the required dependencies.
 
 ```
-$ pip install -r requirements.txt
+pip install -r requirements.txt
 ```
 
-Deploy the system to your AWS account.
+6. Set up environment varaibles - change the values to your target AWS account Id and region.
 ```
-$ cdk deploy
+export CDK_DEFAULT_ACCOUNT=YOUR_ACCOUNT_ID
+export CDK_DEFAULT_REGION=YOUR_TARGET_REGION
 ```
+
+7. Bootstrap CDK
+```
+cdk bootstrap aws://122702569249/us-east-2
+```
+
+8. Deploy CDK package - change the userEmail to your email address (split by comma if multiple).
+```
+cdk deploy --all --requires-approval never --parameters userEmails=YOUR_EMAIL_ADDRESS_SPLIT_BY_COMMA
+```
+
 
 ## Useful commands
 
@@ -56,7 +96,4 @@ $ cdk deploy
  * `cdk diff`        compare deployed stack with current state
  * `cdk docs`        open CDK documentation
 
-Enjoy!
-
-System architecture:
 ![workflow digram](static/cm-accuray-eval-architecture.png)

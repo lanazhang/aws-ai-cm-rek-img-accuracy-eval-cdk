@@ -82,9 +82,11 @@ def lambda_handler(event, context):
         if status is not None:
             # Update DB task table with the new task status
             # Get task item from DB table
+            id = dynamodb_name.replace(DYNAMODB_TABLE_PREFIX + '-', '')
+            print('item id:', id)
             d_response = dynamodb.get_item(
                 TableName=DYNAMO_TASK_TABLE,
-                Key={"id" : { "S": dynamodb_name.replace(DYNAMODB_TABLE_PREFIX, '')}}
+                Key={"id" : { "S": id}}
             )    
             item = d_response.get("Item")
             print ("6. Get task entry from DB: ", item)
