@@ -1,4 +1,4 @@
-# AWS AI Content Moderation Accuracy Evaluation PoC-in-a-box
+# AWS AI Content Moderation Accuracy Evaluation PoC-in-a-box: beta
 
 ![workflow digram](static/flow_diagram.png)
 
@@ -15,7 +15,25 @@ This CDK package will help you deploy the AWS Content Moderation accuracy evalua
 
 You will need admin access to the AWS account to deploy the CDK package and the underline AWS services.
 
+
 ## Prerequisites
+#### Supported AWS regions
+The Accuracy Evaluation tool requires AWS services such as Amazon SageMaker GrounTruth/A2I and Amazon Rekognition which were unavailable in all the AWS regions when this repo was published. Please choose from one of the below AWS regions to deploy the system.
+
+| Region |
+| ------------- |
+| us-east-1 |
+| us-east-2 |
+| us-west-2 |
+| eu-central-1 |
+| eu-west-2 |
+| eu-west-1 |
+| ap-south-1 |
+| ap-southeast-2 |
+| ap-northeast-2 |
+| ap-northeast-1 |
+
+
 #### Install environment dependencies and set up authentication
 > :warning: **If you are using CloudShell**: You can skip this section and proceed to the **Deploy the CDK package** section if using ClouShell in the same AWS account or the other AWS services support bash command (ex. Cloud9)
 
@@ -65,11 +83,11 @@ python3 -m venv .venv
 
 4. Activate virtual environment
 
-  On MacOS or Linux
+  - On MacOS or Linux
   ```sh
   source .venv/bin/activate
   ```
-  On Windows
+  - On Windows
   ```sh
     .venv\Scripts\activate.bat                                        
 ```
