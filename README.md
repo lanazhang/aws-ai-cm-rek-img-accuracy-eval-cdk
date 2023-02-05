@@ -1,6 +1,6 @@
 # AWS AI Content Moderation Accuracy Evaluation PoC-in-a-box (beta)
-This tool will help you evaluate Amazon Rekognition image moderation's false-positive rate based on your own image dataset. Follow the instructions to deploy the system to your AWS account as a CDK package so that you can run self-serve evaluations without privacy concerns.
 
+This tool will help you evaluate Amazon Rekognition image moderation's false-positive rate based on your own image dataset. Follow the instructions to deploy the system to your AWS account as a CDK package and run self-serve evaluations without privacy concerns.
 
 ![workflow digram](static/flow_diagram.png)
 
