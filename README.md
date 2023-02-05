@@ -1,10 +1,8 @@
 # AWS AI Content Moderation Accuracy Evaluation PoC-in-a-box (beta)
-This CDK package will help you deploy the AWS Content Moderation accuracy evaluation PoC-in-a-box to your AWS account.
+This AWS Content Moderation Accuracy Evaluation tool helps you evaluate Amazon Rekognition image moderation's false-positive rate based on your own image dataset. It will deploy the system to your AWS account so that you can run self-serve moderation accuracy evaluations without privacy concerns.
 
 
 ![workflow digram](static/flow_diagram.png)
-
-The AWS Content Moderation Accuracy Evaluation tool helps you evaluate Amazon Rekognition image moderation's false-positive rate based on your own dataset. 
 
 To evaluate Content Moderation accuracy:
 
