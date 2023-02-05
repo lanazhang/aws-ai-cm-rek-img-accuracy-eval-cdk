@@ -1,4 +1,6 @@
-# AWS AI Content Moderation Accuracy Evaluation PoC-in-a-box: beta
+# AWS AI Content Moderation Accuracy Evaluation PoC-in-a-box (beta)
+This CDK package will help you deploy the AWS Content Moderation accuracy evaluation PoC-in-a-box to your AWS account.
+
 
 ![workflow digram](static/flow_diagram.png)
 
@@ -11,12 +13,10 @@ To evaluate Content Moderation accuracy:
 * Rekognition will label some of your images as inappropriate. You then can review these images using A2I to provide human input: if the image truly has inappropriate information (true-positive) or not (false-positive).
 * The tool will combine Rekognition moderation results and human inputs to produce an accuracy report.
 
-This CDK package will help you deploy the AWS Content Moderation accuracy evaluation PoC-in-a-box with Python.
-
-You will need admin access to the AWS account to deploy the CDK package and the underline AWS services.
-
 
 ## Prerequisites
+You will need admin access to the AWS account to deploy the CDK package and the underline AWS services.
+
 ### Supported AWS regions
 The Accuracy Evaluation tool requires AWS services Amazon SageMaker GrounTruth/A2I and Amazon Rekognition, which are available in the below regions. Please choose from one of the below AWS regions to deploy the CDK package.
 
