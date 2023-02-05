@@ -15,7 +15,9 @@ This CDK package will help you deploy the AWS Content Moderation accuracy evalua
 
 ## Prerequisites
 
-install Node.js
+Refer to **Step** 1 and **Step 2** in this [instruction](https://catalog.us-east-1.prod.workshops.aws/workshops/1ece9ffd-4c24-4e66-b42a-0c0e13b0f668/en-US/content-moderation/01-image-moderation/02-image-moderation-with-a2i) to set up the Workforce team. The Accuracy Evaluation tool will use to launch human review tasks using Amazon A2I.
+
+Install Node.js
 https://nodejs.org/en/download/
 
 Install Python 3.7+
@@ -31,8 +33,8 @@ Install Python Virtual Environment
 pip install virtualenv
 ```
 
+Setup the AWS CLI
 ```sh
-# Setup the AWS CLI
 aws configure                                                                     
  ```                                                                                  
 
@@ -83,7 +85,7 @@ export CDK_DEFAULT_REGION=YOUR_TARGET_REGION
 cdk bootstrap aws://${CDK_DEFAULT_ACCOUNT}/${CDK_DEFAULT_REGION}
 ```
 
-8. Deploy CDK package - change the userEmail to your email address (split by comma if multiple). Ex: user1@sample.com,user2@sample.com
+8. Deploy CDK package - change the userEmails to your email address (split by comma if multiple). Ex: user1@sample.com,user2@sample.com
 ```
 cdk deploy --all --requires-approval never --parameters userEmails=YOUR_EMAIL_ADDRESS_SPLIT_BY_COMMA
 ```
