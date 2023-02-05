@@ -15,7 +15,7 @@ S3_BUCKET_TEMP_FILE_KEY = ".cfn_temp/a2i.json"
 S3_INPUT_PREFIX = "input/"
 S3_REPORT_PREFIX = "report/"
 S3_PRE_SIGNED_URL_EXPIRATION_IN_S = "300"
-S3_WEB_BUCKET_NAME_PREFIX = "cm-accuracy-eval-website-console"
+S3_WEB_BUCKET_NAME_PREFIX = "cm-website-console"
 
 A2I_WORKFLOW_NAME_PREFIX = "cm-accuracy"
 A2I_UI_TEMPLATE_NAME = "cm-accuracy-eval-image-review-ui-template"
