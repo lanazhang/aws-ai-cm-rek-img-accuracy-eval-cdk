@@ -17,25 +17,18 @@ You will need admin access to the AWS account to deploy the CDK package and the 
 
 
 ## Prerequisites
-#### Supported AWS regions
-The Accuracy Evaluation tool requires AWS services such as Amazon SageMaker GrounTruth/A2I and Amazon Rekognition which were unavailable in all the AWS regions when this repo was published. Please choose from one of the below AWS regions to deploy the system.
+### Supported AWS regions
+The Accuracy Evaluation tool requires AWS services Amazon SageMaker GrounTruth/A2I and Amazon Rekognition, which are available in the below regions. Please choose from one of the below AWS regions to deploy the CDK package.
 
-| Region |
-| ------------- |
-| us-east-1 |
-| us-east-2 |
-| us-west-2 |
-| eu-central-1 |
-| eu-west-2 |
-| eu-west-1 |
-| ap-south-1 |
-| ap-southeast-2 |
-| ap-northeast-2 |
-| ap-northeast-1 |
+| |Regions ||||
+| ---------- | ---------- | ---------- | ---------- | ---------- |
+| US | us-east-1 | us-east-2 | us-west-2 ||
+| Europe | eu-central-1 | eu-west-2 | eu-west-1 ||
+| Asia | ap-south-1 | ap-southeast-2 | ap-northeast-2 | ap-northeast-1 |
 
 
-#### Install environment dependencies and set up authentication
-> :warning: **If you are using CloudShell**: You can skip this section and proceed to the **Deploy the CDK package** section if using ClouShell in the same AWS account or the other AWS services support bash command (ex. Cloud9)
+### Install environment dependencies and set up authentication
+> :warning: You can skip this section and proceed to the **Deploy the CDK package** section if using ClouShell in the same AWS account or the other AWS services support bash command (ex. Cloud9)
 
 - [ ] Install Node.js
 https://nodejs.org/en/download/
@@ -58,9 +51,13 @@ pip install virtualenv
 aws configure                                                                     
  ```                      
 
-#### Deploy the CDK package
-> :warning: **Set up a SageMaker GroundTruth work team using the AWS console**: Before starting the CDK deployment, you must manually set up SageMaker GrounTruth Workforce in the AWS console.
-Refer to [**Step 1**](https://catalog.us-east-1.prod.workshops.aws/workshops/1ece9ffd-4c24-4e66-b42a-0c0e13b0f668/en-US/content-moderation/01-image-moderation/02-image-moderation-with-a2i#step-1:-create-a-private-team-in-aws-console-(you-can-skip-this-step-if-you-already-have-a-private-work-team-in-the-region)) and [**Step 2**](https://catalog.us-east-1.prod.workshops.aws/workshops/1ece9ffd-4c24-4e66-b42a-0c0e13b0f668/en-US/content-moderation/01-image-moderation/02-image-moderation-with-a2i#step-2:-activate-a2i-user-account) in this [instruction](https://catalog.us-east-1.prod.workshops.aws/workshops/1ece9ffd-4c24-4e66-b42a-0c0e13b0f668/en-US/content-moderation/01-image-moderation/02-image-moderation-with-a2i) to set up the Workforce team. The Accuracy Evaluation tool needs it to launch human review tasks using Amazon A2I.
+### Deploy the CDK package
+> :warning: **Set up a SageMaker GroundTruth work team via the AWS console**: 
+Before starting the CDK deployment, you must manually set up SageMaker GrounTruth Workforce in the AWS console if the account/region doesn't have a work team provisioned.
+Refer to [**Step 1**](https://catalog.us-east-1.prod.workshops.aws/workshops/1ece9ffd-4c24-4e66-b42a-0c0e13b0f668/en-US/content-moderation/01-image-moderation/02-image-moderation-with-a2i#step-1:-create-a-private-team-in-aws-console-(you-can-skip-this-step-if-you-already-have-a-private-work-team-in-the-region)) 
+and [**Step 2**](https://catalog.us-east-1.prod.workshops.aws/workshops/1ece9ffd-4c24-4e66-b42a-0c0e13b0f668/en-US/content-moderation/01-image-moderation/02-image-moderation-with-a2i#step-2:-activate-a2i-user-account) 
+in this [instruction](https://catalog.us-east-1.prod.workshops.aws/workshops/1ece9ffd-4c24-4e66-b42a-0c0e13b0f668/en-US/content-moderation/01-image-moderation/02-image-moderation-with-a2i) 
+to set up the Workforce team. This step will set up the user to access the Accuracy Evaluation web portal and A2I for human review.
 
 
 1. Clone code
