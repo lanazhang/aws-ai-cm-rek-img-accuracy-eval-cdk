@@ -7,11 +7,13 @@ DYNAMO_TASK_TABLE = os.environ["DYNAMODB_TASK_TABLE"]
 DYNAMO_INDEX_NAME = os.environ["DYNAMODB_INDEX_NAME"]
 EXPIRATION_IN_S = os.environ["EXPIRATION_IN_S"] # 5 minutes
 
+region = os.environ['AWS_REGION']
+
 TP_STR = "true-positive"
 FP_STR = "false-positive"
 
 dynamodb = boto3.client('dynamodb')
-s3 = boto3.client('s3')
+s3 = boto3.client('s3', region_name=region, endpoint_url=f'https://s3.{region}.amazonaws.com')
 
 def lambda_handler(event, context):
     id = event.get("id")
