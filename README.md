@@ -27,7 +27,7 @@ The Accuracy Evaluation tool requires AWS services such as Amazon SageMaker Grou
 
 ### Install environment dependencies and set up authentication
 <details><summary>
-:bulb: You can skip this section and proceed to the Deploy the CDK package  if using CloudShell in the same AWS account or the other AWS services support bash command (ex. Cloud9)
+:bulb: You can skip this section if using CloudShell to deploy the CDK package or the other AWS services support bash command from the same AWS account (ex. Cloud9). This section is required if you run from a self-managed environment such as a local desktop.
 </summary>
 
 - [ ] Install Node.js
@@ -35,6 +35,9 @@ https://nodejs.org/en/download/
 
 - [ ] Install Python 3.7+
 https://www.python.org/downloads/
+
+- [ ] Install Git
+https://github.com/git-guides/install-git
 
 - [ ] Install Pip
 ```sh
@@ -45,6 +48,7 @@ python -m ensurepip --upgrade
 ```sh
 pip install virtualenv
 ```
+
 
 - [ ] Setup the AWS CLI authentication
 ```sh
