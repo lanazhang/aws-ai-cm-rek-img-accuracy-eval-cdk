@@ -15,8 +15,6 @@ This CDK package will help you deploy the AWS Content Moderation accuracy evalua
 
 ## Prerequisites
 
-Refer to **Step** 1 and **Step 2** in this [instruction](https://catalog.us-east-1.prod.workshops.aws/workshops/1ece9ffd-4c24-4e66-b42a-0c0e13b0f668/en-US/content-moderation/01-image-moderation/02-image-moderation-with-a2i) to set up the Workforce team. The Accuracy Evaluation tool will use to launch human review tasks using Amazon A2I.
-
 Install Node.js
 https://nodejs.org/en/download/
 
@@ -36,7 +34,10 @@ pip install virtualenv
 Setup the AWS CLI
 ```sh
 aws configure                                                                     
- ```                                                                                  
+ ```                      
+
+Before starting the CDK deployment, you must manually set up SageMaker GrounTruth Workforce in the AWS console.
+Refer to **Step** 1 and **Step 2** in this [instruction](https://catalog.us-east-1.prod.workshops.aws/workshops/1ece9ffd-4c24-4e66-b42a-0c0e13b0f668/en-US/content-moderation/01-image-moderation/02-image-moderation-with-a2i) to set up the Workforce team. The Accuracy Evaluation tool will use to launch human review tasks using Amazon A2I.
 
 
 1. Clone code
