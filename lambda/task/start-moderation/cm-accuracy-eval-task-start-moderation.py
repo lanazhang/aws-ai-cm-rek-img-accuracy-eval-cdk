@@ -61,7 +61,7 @@ def lambda_handler(event, context):
     
 
     # Create A2I workflow
-    a2i_workflow_arn = createA2iWorkflow(item["id"], item["s3_bucket"], WORK_FLOW_NAME_PREFIX + '-' + item["id"])
+    a2i_workflow_arn = createA2iWorkflow(item["id"], item["s3_bucket"], f'{WORK_FLOW_NAME_PREFIX}-{item["id"]}')
     print("5. Create A2I workflow: ", a2i_workflow_arn )
     item["a2i_workflow_arn"] = a2i_workflow_arn
 
@@ -140,7 +140,7 @@ def createA2iWorkflow(task_id, s3_bucket, workflow_name):
     
     # Check if already exists
     try:
-      describe_flow_response = sagemaker.describe_flow_definition(FlowDefinitionName=WORK_FLOW_NAME_PREFIX + task_id)
+      describe_flow_response = sagemaker.describe_flow_definition(FlowDefinitionName=f'{WORK_FLOW_NAME_PREFIX}-{task_id}')
       if "FlowDefinitionArn" in describe_flow_response:
         event['A2IWorkFlowArn'] = describe_flow_response["FlowDefinitionArn"]
         return event
@@ -185,7 +185,7 @@ def createA2iWorkflow(task_id, s3_bucket, workflow_name):
     )
 
     flow_response = sagemaker.create_flow_definition(
-            FlowDefinitionName= WORK_FLOW_NAME_PREFIX + task_id,
+            FlowDefinitionName= f'{WORK_FLOW_NAME_PREFIX}-{task_id}',
             RoleArn= role_arn,
             HumanLoopConfig= {
                 "WorkteamArn": work_team_arn,
