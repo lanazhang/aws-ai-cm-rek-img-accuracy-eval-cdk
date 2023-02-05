@@ -53,11 +53,11 @@ aws configure
 
 ### Deploy the CDK package
 > :warning: **Set up a SageMaker GroundTruth work team via the AWS console**: 
-Before starting the CDK deployment, you must manually set up SageMaker GrounTruth Workforce in the AWS console if the account/region doesn't have a work team provisioned.
+Before starting the CDK deployment, you must manually set up SageMaker GrounTruth private team in the AWS console if the account/region doesn't have it provisioned.
 Refer to [**Step 1**](https://catalog.us-east-1.prod.workshops.aws/workshops/1ece9ffd-4c24-4e66-b42a-0c0e13b0f668/en-US/content-moderation/01-image-moderation/02-image-moderation-with-a2i#step-1:-create-a-private-team-in-aws-console-(you-can-skip-this-step-if-you-already-have-a-private-work-team-in-the-region)) 
 and [**Step 2**](https://catalog.us-east-1.prod.workshops.aws/workshops/1ece9ffd-4c24-4e66-b42a-0c0e13b0f668/en-US/content-moderation/01-image-moderation/02-image-moderation-with-a2i#step-2:-activate-a2i-user-account) 
 in this [instruction](https://catalog.us-east-1.prod.workshops.aws/workshops/1ece9ffd-4c24-4e66-b42a-0c0e13b0f668/en-US/content-moderation/01-image-moderation/02-image-moderation-with-a2i) 
-to set up the Workforce team. This step will set up the user to access the Accuracy Evaluation web portal and A2I for human review.
+to set up the private team. This step will create the user(s) to access the Accuracy Evaluation web portal and A2I for human review.
 
 Once set up the SageMaker GrounTruth work team, follow the below steps to deploy the CDK package.
 
