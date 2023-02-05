@@ -1,5 +1,5 @@
 # AWS AI Content Moderation Accuracy Evaluation PoC-in-a-box (beta)
-This AWS Content Moderation Accuracy Evaluation tool helps you evaluate Amazon Rekognition image moderation's false-positive rate based on your own image dataset. It will deploy the system to your AWS account so that you can run self-serve moderation accuracy evaluations without privacy concerns.
+This tool will help you evaluate Amazon Rekognition image moderation's false-positive rate based on your own image dataset. Follow the instructions to deploy the system to your AWS account as a CDK package so that you can run self-serve evaluations without privacy concerns.
 
 
 ![workflow digram](static/flow_diagram.png)
@@ -16,7 +16,7 @@ To evaluate Content Moderation accuracy:
 You will need admin access to the AWS account to deploy the CDK package and the underline AWS services.
 
 ### Supported AWS regions
-The Accuracy Evaluation tool requires AWS services Amazon SageMaker GrounTruth/A2I and Amazon Rekognition, which are available in the below regions. Please choose from one of the below AWS regions to deploy the CDK package.
+The Accuracy Evaluation tool requires AWS services such as Amazon SageMaker GrounTruth/A2I and Amazon Rekognition, which are available in certain regions. Please choose one of the below AWS regions to deploy the CDK package.
 
 | |Regions ||||
 | ---------- | ---------- | ---------- | ---------- | ---------- |
@@ -50,14 +50,14 @@ aws configure
  ```                      
 
 ### Deploy the CDK package
-> :warning: **Set up a SageMaker GroundTruth work team via the AWS console**: 
+> :warning: **Set up a SageMaker GroundTruth private team via the AWS console**: 
 Before starting the CDK deployment, you must manually set up SageMaker GrounTruth private team in the AWS console if the account/region doesn't have it provisioned.
 Refer to [**Step 1**](https://catalog.us-east-1.prod.workshops.aws/workshops/1ece9ffd-4c24-4e66-b42a-0c0e13b0f668/en-US/content-moderation/01-image-moderation/02-image-moderation-with-a2i#step-1:-create-a-private-team-in-aws-console-(you-can-skip-this-step-if-you-already-have-a-private-work-team-in-the-region)) 
 and [**Step 2**](https://catalog.us-east-1.prod.workshops.aws/workshops/1ece9ffd-4c24-4e66-b42a-0c0e13b0f668/en-US/content-moderation/01-image-moderation/02-image-moderation-with-a2i#step-2:-activate-a2i-user-account) 
 in this [instruction](https://catalog.us-east-1.prod.workshops.aws/workshops/1ece9ffd-4c24-4e66-b42a-0c0e13b0f668/en-US/content-moderation/01-image-moderation/02-image-moderation-with-a2i) 
 to set up the private team. This step will create the user(s) to access the Accuracy Evaluation web portal and A2I for human review.
 
-Once set up the SageMaker GrounTruth work team, follow the below steps to deploy the CDK package.
+Once set up the SageMaker GrounTruth private team, follow the below steps to deploy the CDK package.
 
 1. Clone code
 ```sh
@@ -110,22 +110,14 @@ cdk bootstrap aws://${CDK_DEFAULT_ACCOUNT}/${CDK_DEFAULT_REGION}
 cdk deploy --all --requires-approval never
 ```
 
-You can navigate to the CloudFormation service in the AWS console to monitor the deployment process. The CDK package will launch one CloudFormation stack with three nested stacks to deploy different logic components of the system. 
+You can navigate to the CloudFormation service in the AWS console to monitor the deployment process. The CDK package will launch one CloudFormation stack with three nested stacks to deploy sub-systems. 
 
-Once the deployment completes, you can find the website URL from the CloudFormation stack output. Use the username/password set up earlier in the Work team stage to log in to the website.
+Once the deployment completes, you can find the website URL from the CloudFormation stack output. Use the username/password set up earlier in the GroundTruth private team stage to log in to the website.
 ![CloudFormation stack output](static/cloudformation-stack-output.png)
-
-#### Useful commands
-
- * `cdk ls`          list all stacks in the app
- * `cdk synth`       emits the synthesized CloudFormation template
- * `cdk deploy`      deploy this stack to your default AWS account/region
- * `cdk diff`        compare deployed stack with current state
- * `cdk docs`        open CDK documentation
 
 
 ## Add new users
-You can log in to the Accuracy Evaluation web portal using the user created in the step: **Set up a SageMaker GroundTruth work team using the AWS console**. The same username/password will work for both the web portal and the A2I human review console.
+You can log in to the Accuracy Evaluation web portal using the user created in the step: **Set up a SageMaker GroundTruth private team using the AWS console**. The same username/password will work for both the web portal and the A2I human review console.
 
 To add additional users to the system using the AWS console:
 - Navigate to SageMaker
