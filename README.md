@@ -59,6 +59,7 @@ and [**Step 2**](https://catalog.us-east-1.prod.workshops.aws/workshops/1ece9ffd
 in this [instruction](https://catalog.us-east-1.prod.workshops.aws/workshops/1ece9ffd-4c24-4e66-b42a-0c0e13b0f668/en-US/content-moderation/01-image-moderation/02-image-moderation-with-a2i) 
 to set up the Workforce team. This step will set up the user to access the Accuracy Evaluation web portal and A2I for human review.
 
+Once set up the SageMaker GrounTruth work team, follow the below steps to deploy the CDK package.
 
 1. Clone code
 ```sh
@@ -111,6 +112,9 @@ cdk bootstrap aws://${CDK_DEFAULT_ACCOUNT}/${CDK_DEFAULT_REGION}
 cdk deploy --all --requires-approval never
 ```
 
+You can navigate to the CloudFormation service in the AWS console to monitor the deployment process. The CDK package will launch one CloudFormation stack with three nested stacks to deploy different logic components of the system. 
+
+Once the deployment completes, you can find the website port URL from the CloudFormation stack output. Use the username/password set up earlier in the Work team stage to log in to the website.
 
 #### Useful commands
 
