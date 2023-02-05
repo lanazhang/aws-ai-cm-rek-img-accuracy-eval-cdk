@@ -18,7 +18,7 @@ class RootProvision(Stack):
     
         self.instance_hash = str(uuid.uuid4())[0:5]
 
-        user_emails = _cfnParameter(self, "userEmails", type="String",
+        user_emails = _cfnParameter(self, "userEmails", type="String", default="",
                                 description="The emails for users to log in to the website and A2I. Split by a comma if multiple. You can always add new users after the system is deployed.")
     
     

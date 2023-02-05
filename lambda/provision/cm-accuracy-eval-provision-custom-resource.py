@@ -70,6 +70,7 @@ def on_create(event):
     print("1.1 User pool client created:", cognito_client_id)
 
     # Add user
+    '''
     if COGNITO_USER_EMAILS is not None and len(COGNITO_USER_EMAILS) > 0:
       for user in COGNITO_USER_EMAILS:
         try:
@@ -112,7 +113,7 @@ def on_create(event):
         print("3. Workforce created:", work_force_arn)
     else:
         print("3. Workforce exists:", work_force_arn)
-    
+    '''
     
     if work_team_arn is None:  
       # Wait until workforce stablized
