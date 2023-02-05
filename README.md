@@ -26,7 +26,9 @@ The Accuracy Evaluation tool requires AWS services such as Amazon SageMaker Grou
 
 
 ### Install environment dependencies and set up authentication
-> :warning: You can skip this section and proceed to the **Deploy the CDK package** section if using ClouShell in the same AWS account or the other AWS services support bash command (ex. Cloud9)
+<details><summary>
+:bulb: You can skip this section and proceed to the **Deploy the CDK package** section if using ClouShell in the same AWS account or the other AWS services support bash command (ex. Cloud9)
+</summary>
 
 - [ ] Install Node.js
 https://nodejs.org/en/download/
@@ -48,6 +50,7 @@ pip install virtualenv
 ```sh
 aws configure                                                                     
  ```                      
+</details>
 
 ### Deploy the CDK package
 > :warning: **Set up a SageMaker GroundTruth private team via the AWS console**: 
