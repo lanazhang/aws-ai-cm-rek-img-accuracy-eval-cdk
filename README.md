@@ -114,7 +114,8 @@ cdk deploy --all --requires-approval never
 
 You can navigate to the CloudFormation service in the AWS console to monitor the deployment process. The CDK package will launch one CloudFormation stack with three nested stacks to deploy different logic components of the system. 
 
-Once the deployment completes, you can find the website port URL from the CloudFormation stack output. Use the username/password set up earlier in the Work team stage to log in to the website.
+Once the deployment completes, you can find the website URL from the CloudFormation stack output. Use the username/password set up earlier in the Work team stage to log in to the website.
+![CloudFormation stack output](static/cloudformation-output.png)
 
 #### Useful commands
 
