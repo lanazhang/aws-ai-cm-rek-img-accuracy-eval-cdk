@@ -62,7 +62,7 @@ python3 -m venv .venv
 
   On MacOS or Linux
   ```sh
-  source .venv/bin/activate                                       
+  source .venv/bin/activate
   ```
   On Windows
   ```sh
@@ -86,9 +86,9 @@ export CDK_DEFAULT_REGION=YOUR_TARGET_REGION
 cdk bootstrap aws://${CDK_DEFAULT_ACCOUNT}/${CDK_DEFAULT_REGION}
 ```
 
-8. Deploy CDK package - change the userEmails to your email address (split by comma if multiple). Ex: user1@sample.com,user2@sample.com
+8. Deploy CDK package
 ```
-cdk deploy --all --requires-approval never --parameters userEmails=YOUR_EMAIL_ADDRESS_SPLIT_BY_COMMA
+cdk deploy --all --requires-approval never
 ```
 
 
