@@ -135,7 +135,8 @@ def unmarshalValue(node, mapAsObject):
             return data
             
 def createA2iWorkflow(task_id, s3_bucket, workflow_name):
-    workflow_name = workflow_name.lower().replace(' ','-')
+    #workflow_name = workflow_name.lower().replace(' ','-')
+    print(">>>>> Workflow_name", workflow_name)
     
     # Check if already exists
     try:
