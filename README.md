@@ -50,7 +50,7 @@ cd aws-ai-cm-rek-img-accuracy-eval-cdk/
 
 2. Install Node CDK package
 ```sh
-npm install -g aws-cdk
+sudo npm install -g aws-cdk
 ```
 
 3. Create Python Virtual Environment

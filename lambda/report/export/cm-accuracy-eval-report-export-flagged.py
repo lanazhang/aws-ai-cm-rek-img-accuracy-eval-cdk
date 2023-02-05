@@ -11,8 +11,10 @@ EXPIRATION_IN_S = os.environ["EXPIRATION_IN_S"] # 5 minutes
 S3_BUCKET_NAME = os.environ["S3_BUCKET_NAME"]
 S3_REPORT_PREFIX = os.environ["S3_REPORT_PREFIX"]
 
+region = os.environ['AWS_REGION']
+
 dynamodb = boto3.client('dynamodb')
-s3 = boto3.client('s3')
+s3 = boto3.client('s3', region_name=region, endpoint_url=f'https://s3.{region}.amazonaws.com')
 
 def lambda_handler(event, context):
     id = event.get("id")
