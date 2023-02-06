@@ -164,6 +164,8 @@ class BackendProvision(NestedStack):
         export_csv_role = create_lambda_export_csv_role(self,bucket_name, self.region, self.account_id)
         self.create_api_endpoint('export-csv', report, "report", "export", "POST", auth, export_csv_role, "cm-accuracy-eval-report-export-flagged", self.instance_hash, 10240, 30, 
             evns={
+             'DYNAMODB_INDEX_NAME': DYNAMOBD_DETAIL_TABLE_LABELED_INDEX_NAME,
+             'DYNAMODB_TASK_TABLE': DYNAMOBD_TASK_TABLE_PREFIX + f"-{self.instance_hash}",                
              'S3_BUCKET_NAME': bucket_name,
              'S3_REPORT_PREFIX': S3_REPORT_PREFIX,
              'EXPIRATION_IN_S': S3_PRE_SIGNED_URL_EXPIRATION_IN_S,

@@ -103,8 +103,8 @@ pip install -r requirements.txt
 
 6. Set up environment varaibles - change the values to your target AWS account Id and region.
 ```
-export CDK_DEFAULT_ACCOUNT=YOUR_ACCOUNT_ID
-export CDK_DEFAULT_REGION=YOUR_TARGET_REGION
+export CDK_DEFAULT_ACCOUNT=[YOUR_ACCOUNT_ID]
+export CDK_DEFAULT_REGION=[YOUR_TARGET_REGION]
 ```
 
 7. Bootstrap CDK
