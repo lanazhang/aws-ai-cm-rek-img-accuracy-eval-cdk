@@ -36,26 +36,21 @@ def lambda_handler(event, context):
     
     start_ts = datetime.now()
     img_start_ts = time.time()
-    try:
-     rek_response = rekognition.detect_moderation_labels(
-         Image={
-            'S3Object': {
-                'Bucket': bucket_name,
-                'Name': s3_key,
-            }
-         },
-         HumanLoopConfig={
-            "FlowDefinitionArn":a2i_workflow_arn,
-            "HumanLoopName": human_loop_name,
-            "DataAttributes":{"ContentClassifiers":["FreeOfPersonallyIdentifiableInformation"]}
-         },
-         MinConfidence = MIN_CONFIDENCE
-     )
-    except Exception as ex:
-     return {
-         'statusCode': 500,
-         'body': 'Moderation failed: ' + s3_key
-     }
+
+    rek_response = rekognition.detect_moderation_labels(
+        Image={
+           'S3Object': {
+               'Bucket': bucket_name,
+               'Name': s3_key,
+           }
+        },
+        HumanLoopConfig={
+           "FlowDefinitionArn":a2i_workflow_arn,
+           "HumanLoopName": human_loop_name,
+           "DataAttributes":{"ContentClassifiers":["FreeOfPersonallyIdentifiableInformation"]}
+        },
+        MinConfidence = MIN_CONFIDENCE
+    )
      
     # Construct result
     db_item = {
