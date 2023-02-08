@@ -119,20 +119,20 @@ export CDK_DEFAULT_ACCOUNT=[YOUR_ACCOUNT_ID]
 export CDK_DEFAULT_REGION=[YOUR_TARGET_REGION]
 ```
 
-7. Bootstrap CDK
+7. Bootstrap CDK - this step will launch a CloudFormation stack to provision the CDK package, which will take ~2 minutes.
 ```
 cdk bootstrap aws://${CDK_DEFAULT_ACCOUNT}/${CDK_DEFAULT_REGION}
 ```
 
-8. Deploy CDK package
+8. Deploy CDK package - this step will launch one CloudFormation stack with three nested stacks for different sub-systems, which will take ~10 minutes.
 ```
 cdk deploy --all --requires-approval never
 ```
 
-The bash console will print out the website URL. You can also find it in the CloudFormation console, checking the stack **cm-accuracy-eval-RootStack**.
-Navigate to the CloudFormation service in the AWS console to monitor the deployment process. The CDK package will launch one CloudFormation stack with three nested stacks to deploy sub-systems. 
+Once the deployment completes, you can find the website URL in the bash console. You can also find it in the CloudFormation console by checking the output in stack **cm-accuracy-eval-RootStack**.
+Navigate to the CloudFormation service in the AWS console to monitor the deployment process. 
 
-Once the deployment completes, you can find the website URL from the CloudFormation stack output. Use the username/password set up earlier in the GroundTruth private team stage to log in to the website.
+Use the username/password set up earlier in the GroundTruth private team stage to log in to the website.
 ![CloudFormation stack output](static/cloudformation-stack-output.png)
 
 
