@@ -130,6 +130,7 @@ cdk deploy --all --requires-approval never
 ```
 
 Once the deployment completes, you can find the website URL in the bash console. You can also find it in the CloudFormation console by checking the output in stack **cm-accuracy-eval-RootStack**.
+
 Use the username/password set up earlier in the GroundTruth private team stage to log in to the website.
 ![CloudFormation stack output](static/cloudformation-stack-output.png)
 
