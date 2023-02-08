@@ -14,9 +14,9 @@ To evaluate Content Moderation accuracy:
 ## The Accuracy Evaluation system architecture
 
 The CDK package will deploy the below AWS services into your specified AWS account/region, including:
-- A static frontend application leveraging S3, CloudFront, and Cognition.
-- Serverless backend with API Gateway, Lambda. DynamoDB and S3 to manage state.
-- Bulk processing workflow with Step Functions state machine, and Lambda functions.
+- A static frontend application leveraging Amazon S3, Amazon CloudFront, and Amazon Cognito.
+- Serverless backend with Amazon API Gateway, AWS Lambda. Amazon DynamoDB and Amazon S3 for state management.
+- Bulk processing workflow with AWS Step Functions, Amazon Rekognition and AWS Lambda functions.
 - Amazon A2I for human review.
 
 ![workflow digram](static/cm-accuray-eval-architecture.png)
