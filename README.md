@@ -13,7 +13,7 @@ To evaluate Content Moderation accuracy:
 
 ## System architecture
 
-The CDK package will deploy the below AWS services into your specified AWS account/region, including:
+The CDK package will deploy the below AWS services into your AWS account/region, including:
 - A static frontend application leveraging Amazon S3, Amazon CloudFront, and Amazon Cognito.
 - Serverless backend with Amazon API Gateway, AWS Lambda. Amazon DynamoDB and Amazon S3 for state management.
 - Bulk processing workflow with AWS Step Functions, Amazon Rekognition and AWS Lambda functions.
