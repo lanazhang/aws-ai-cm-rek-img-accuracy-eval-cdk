@@ -18,6 +18,7 @@ def lambda_handler(event, context):
     
     bucket_name = event["S3Bucket"]
     s3_key = event["S3Key"]
+    '''
     arr = s3_key.lower().split('.')
     type = arr[len(arr)-1]
     if type not in ["png","jpg","jpeg"] :
@@ -25,6 +26,7 @@ def lambda_handler(event, context):
          'statusCode': 400,
          'body': 'Invalid S3 key or unsupported image type: ' + s3_key
      }
+     '''
     dyanmodb_table = event["DynamoDBTable"]
     a2i_workflow_arn = event["A2IWorkFlowArn"]
     
@@ -34,21 +36,27 @@ def lambda_handler(event, context):
     
     start_ts = datetime.now()
     img_start_ts = time.time()
-    rek_response = rekognition.detect_moderation_labels(
-        Image={
-           'S3Object': {
-               'Bucket': bucket_name,
-               'Name': s3_key,
-           }
-        },
-        HumanLoopConfig={
-           "FlowDefinitionArn":a2i_workflow_arn,
-           "HumanLoopName": human_loop_name,
-           "DataAttributes":{"ContentClassifiers":["FreeOfPersonallyIdentifiableInformation"]}
-        },
-        MinConfidence = MIN_CONFIDENCE
-    )
-    
+    try:
+     rek_response = rekognition.detect_moderation_labels(
+         Image={
+            'S3Object': {
+                'Bucket': bucket_name,
+                'Name': s3_key,
+            }
+         },
+         HumanLoopConfig={
+            "FlowDefinitionArn":a2i_workflow_arn,
+            "HumanLoopName": human_loop_name,
+            "DataAttributes":{"ContentClassifiers":["FreeOfPersonallyIdentifiableInformation"]}
+         },
+         MinConfidence = MIN_CONFIDENCE
+     )
+    except Exception as ex:
+     return {
+         'statusCode': 500,
+         'body': 'Moderation failed: ' + s3_key
+     }
+     
     # Construct result
     db_item = {
      "file_path": {
