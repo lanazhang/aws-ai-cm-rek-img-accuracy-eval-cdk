@@ -147,4 +147,4 @@ To add additional users to the system using the AWS console:
 - Add the new user(s) to the work team:
   - Click on the team name in the "Private team" section
   - Click on the "Workers" tab to see all the workers in the pool
-  - Select the worker and click on the "Add works to team" button
+  - Select the worker and click on the "Add workers to team" button
