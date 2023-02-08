@@ -11,6 +11,11 @@ To evaluate Content Moderation accuracy:
 * Rekognition will label some of your images as inappropriate. You then can review these images using A2I to provide human input: if the image truly has inappropriate information (true-positive) or not (false-positive).
 * The tool will combine Rekognition moderation results and human inputs to produce an accuracy report.
 
+## The Accuracy Evaluation system architecture:
+
+The CDK package will deploy the below AWS services into your specified AWS account/region.
+
+![workflow digram](static/cm-accuray-eval-architecture.png)
 
 ## Prerequisites
 You will need admin access to the AWS account to deploy the CDK package and the underline AWS services.
@@ -139,6 +144,3 @@ To add additional users to the system using the AWS console:
   - Click on the team name in the "Private team" section
   - Click on the "Workers" tab to see all the workers in the pool
   - Select the worker and click on the "Add works to team" button
-
-## The Accuracy Evaluation system architecture diagram:
-![workflow digram](static/cm-accuray-eval-architecture.png)
