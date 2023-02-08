@@ -19,7 +19,7 @@ The CDK package will deploy the below AWS services into your specified AWS accou
 - Bulk processing workflow with AWS Step Functions, Amazon Rekognition and AWS Lambda functions.
 - Amazon A2I for human review.
 
-![workflow digram](static/cm-accuray-eval-architecture.png)
+![architecture digram](static/cm-accuray-eval-architecture.png)
 
 ## Prerequisites
 You will need admin access to the AWS account to deploy the CDK package and the underline AWS services.
