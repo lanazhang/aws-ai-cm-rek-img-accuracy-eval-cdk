@@ -12,6 +12,8 @@ import boto3
 import uuid
 from datetime import datetime
 import os
+import subprocess
+from ast import literal_eval
 
 TASK_STATUS = "MODERATING"
 DYNAMO_TASK_TABLE = os.environ["DYNAMODB_TASK_TABLE"]
@@ -50,8 +52,11 @@ def lambda_handler(event, context):
         }
 
     # Get numbers of images in the s3 path
-    object_keys = get_all_object_keys(item["s3_bucket"], item["s3_key_prefix"])
-    item["total_files"] = str(len(object_keys))
+    cli = f'/opt/aws s3api list-objects --bucket {item["s3_bucket"]} --prefix {item["s3_key_prefix"]} --output json --query "[length(Contents[])]"'
+    result = subprocess.Popen(cli,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    output = result.communicate()[0].decode('UTF-8')
+    total = literal_eval(output)[0]
+    item["total_files"] = str(total)
     print(f'3. Count numbers of files in the s3 path: s3://{item["s3_bucket"]}/{item["s3_key_prefix"]}. Total:', item["total_files"])
     if item["total_files"] == "0":
         return {
@@ -59,7 +64,6 @@ def lambda_handler(event, context):
             'body': f'No image found in the S3 bucket. S3 URI: s3://{item["s3_bucket"]}/{item["s3_key_prefix"]}'
         }        
     
-
     # Create A2I workflow
     a2i_workflow_arn = createA2iWorkflow(item["id"], item["s3_bucket"], f'{WORK_FLOW_NAME_PREFIX}-{item["id"]}')
     print("5. Create A2I workflow: ", a2i_workflow_arn )
@@ -208,20 +212,3 @@ def createA2iWorkflow(task_id, s3_bucket, workflow_name):
         )
     
     return flow_response['FlowDefinitionArn']
-
-def get_all_object_keys(bucket, prefix, start_after = '', keys = []):
-    response = s3.list_objects_v2(
-        Bucket     = bucket,
-        Prefix     = prefix,
-        StartAfter = start_after
-    )
-
-    if 'Contents' not in response:
-        return keys
-
-    key_list = response['Contents']
-    last_key = key_list[-1]['Key']
-
-    keys.extend(key_list)
-
-    return get_all_object_keys(bucket, prefix, last_key, keys)

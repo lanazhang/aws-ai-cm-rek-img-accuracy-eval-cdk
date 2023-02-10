@@ -222,14 +222,14 @@ class BackendProvision(NestedStack):
         # POST /v1/task/start-moderation
         # Lambda: cm-accuracy-eval-task-start-moderation   
         start_moderation_role = lambda_start_moderation_role(self,bucket_name, self.region, self.account_id)
-        self.create_api_endpoint('start-moderation', task, "task", "start-moderation", "POST", auth, start_moderation_role, "cm-accuracy-eval-task-start-moderation", self.instance_hash, 128, 30, 
+        self.create_api_endpoint('start-moderation', task, "task", "start-moderation", "POST", auth, start_moderation_role, "cm-accuracy-eval-task-start-moderation", self.instance_hash, 10240, 30, 
             evns={
                 "DYNAMODB_TASK_TABLE":DYNAMOBD_TASK_TABLE_PREFIX + f"-{self.instance_hash}",
                 "DYNAMODB_RESULT_TABLE_PREFIX": f'{DYNAMOBD_DETAIL_TABLE_PREFIX}-{self.instance_hash}',
                 "WORK_FLOW_NAME_PREFIX": A2I_WORKFLOW_NAME_PREFIX + f"-{self.instance_hash}",
                 "HUMAN_TASK_UI_NAME": f'arn:aws:sagemaker:{self.region}:{self.account_id}:human-task-ui/{A2I_UI_TEMPLATE_NAME}-{self.instance_hash}',
                 "STEP_FUNCTION_STATE_MACHINE_ARN": f"arn:aws:states:{self.region}:{self.account_id}:stateMachine:{STEP_FUNCTION_STATE_MACHINE_NAME_PREFIX}-{self.instance_hash}"
-            })
+            }, layer=layer)
             
             
     def create_api_endpoint(self, id, root, path1, path2, method, auth, role, lambda_file_name, instance_hash, memory_m, timeout_s, evns, layer=None):
