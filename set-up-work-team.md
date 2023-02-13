@@ -14,10 +14,12 @@ In the Email addresses, type in the user Email(s) that should have access to the
 Provide an Organization name. (example: YOUR ORGANAZATION NAME).
 
 Provide a contact email. (example: your Email address)
+
 ![workflow digram](static/workteam-3.png)
 
 You can create an SNS topic for the workforce. So A2I will send the reviewer (specified in the Email Addresses section) an Email when a new moderation task assigns to them. 
 This setting is optional. No Email will be sent to the reviewer for a new task if you don't create the SNS topic in this step.
+
 ![workflow digram](static/workteam-4.png)
 
 Click on "Create Private Team". AWS will launch all the underline services, including deploying the A2I web portal, launching an AWS Cognito user pool, and creating an SNS topic if specified. This step will take ~ one minute to complete.
