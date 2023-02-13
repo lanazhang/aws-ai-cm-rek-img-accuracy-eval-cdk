@@ -70,10 +70,9 @@ aws configure
 
 ### Deploy the CDK package
 > :warning: **Set up a SageMaker GroundTruth private team via the AWS console**: 
-Before starting the CDK deployment, you must manually set up SageMaker GrounTruth private team in the same AWS region using the AWS console. 
-You can ignore this step if there is already a private work team provision in the AWS account/region for GroundTruth or A2I tasks.
-Follow this [instruction](set-up-work-team.md) 
-to set up the private team. This step will create the user(s) to access the Accuracy Evaluation web portal and A2I for human review.
+To get started with the CDK deployment, you'll need to set up a private team for SageMaker GroundTruth in the same AWS region using the AWS console. 
+If you already have a private work team provisioned in your AWS account or region for GroundTruth or A2I tasks, you can skip this step. 
+To create the necessary user(s) to access the Accuracy Evaluation web portal and A2I for human review, simply follow the [instruction](set-up-work-team.md) provided.
 
 Once set up the SageMaker GrounTruth private team, follow the below steps to deploy the CDK package.
 
