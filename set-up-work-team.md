@@ -24,7 +24,7 @@ This setting is optional. No Email will be sent to the reviewer for a new task i
 
 Click on "Create Private Team". AWS will launch all the underline services, including deploying the A2I web portal, launching an AWS Cognito user pool, and creating an SNS topic if specified. This step will take ~ one minute to complete.
 
-In a few minutes, you should receive an email like the screenshot below. It contains:
+In a few minutes, you should receive an email contains:
 
 - The URL to the A2I reviewer console.
 
